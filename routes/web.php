@@ -160,4 +160,6 @@ Route::post('/invitation/{slug}/upload', [InvitationController::class, 'uploadPh
 // Calendar ICS Download Route (Public)
 Route::get('/calendar/download/{id}', [CalendarController::class, 'download'])->name('calendar.download');
 
+
+
 require __DIR__.'/auth.php';

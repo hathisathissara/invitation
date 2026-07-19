@@ -1,6 +1,6 @@
 <x-app-layout>
 
-    <x-slot name="title">Admin Control Panel — Lumus Studio</x-slot>
+    <x-slot name="title">Admin Control Panel — Lumos Studio</x-slot>
 
     <x-slot name="styles">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
