@@ -16,6 +16,7 @@ class GuestGallery extends Model
         'wedding_id',
         'guest_name',
         'image_path',
+        'public_id',
     ];
 
     public function wedding()

@@ -59,47 +59,65 @@ class GuestGalleryController extends Controller
     /**
      * Delete shared photo from server disk and DB.
      */
-    public function destroy($id)
+     public function destroy($id)
     {
-        $wedding = Auth::user()->wedding;
-        $image = GuestGallery::where('id', $id)->where('wedding_id', $wedding->id)->firstOrFail();
+        $wedding = \Illuminate\Support\Facades\Auth::user()->wedding;
+        $image = \App\Models\GuestGallery::where('id', $id)->where('wedding_id', $wedding->id)->firstOrFail();
 
-        // Server disk එකෙන් physical file එක delete කිරීම
-        $physicalPath = public_path($image->image_path);
-        if (File::exists($physicalPath)) {
-            File::delete($physicalPath);
-        }
+        // 1. Cloudinary URL එකෙන් Public ID එක හොයා ගැනීම
+        // උදාහරණයක් ලෙස: https://res.cloudinary.com/demo/image/upload/v12345/lumus/guest_gallery/guest_123.webp
+        $urlParts = explode('/', $image->image_path);
+        $fileNameWithExt = end($urlParts); // guest_123.webp
+        $fileName = explode('.', $fileNameWithExt)[0]; // guest_123
+        
+        // Folder නමත් එක්ක Public ID එක හදාගන්නවා
+        $publicId = 'lumus/guest_gallery/' . $fileName; 
 
-        // DB එකෙන් delete කිරීම
+        // 2. Cloudinary Admin API එකට යැවීමට අදාල දත්ත සැකසීම
+        $cloudName = env('CLOUDINARY_CLOUD_NAME');
+        $apiKey = env('CLOUDINARY_API_KEY');
+        $apiSecret = env('CLOUDINARY_API_SECRET');
+        $timestamp = time();
+
+        // Cloudinary Security Signature එක හැදීම (SHA-1)
+        $signatureString = "public_id={$publicId}&timestamp={$timestamp}{$apiSecret}";
+        $signature = sha1($signatureString);
+
+        // 3. API රික්වෙස්ට් එක යැවීම
+        $response = Http::asForm()->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/destroy", [
+            'public_id' => $publicId,
+            'api_key' => $apiKey,
+            'timestamp' => $timestamp,
+            'signature' => $signature,
+        ]);
+
+        // 4. DB එකෙන් මකා දැමීම (Cloud එකෙන් මැකුණත් නැතත් අපි අපේ DB එක පිරිසිදු කරනවා)
         $image->delete();
 
-        return redirect()->route('guest-gallery.index')->with('status', 'Shared photo deleted successfully!');
+        return redirect()->route('guest-gallery.index')->with('status', 'Shared photo permanently deleted!');
     }
 
     /**
      * WebP to JPG Dynamic Converter Download.
      */
-    public function downloadJpg($id)
+     public function downloadJpg($id)
     {
         $wedding = Auth::user()->wedding;
         $image = GuestGallery::where('id', $id)->where('wedding_id', $wedding->id)->firstOrFail();
 
-        $physicalPath = public_path($image->image_path);
+        $cloudUrl = $image->image_path; // Cloudinary URL එක
 
-        if (!File::exists($physicalPath)) {
-            abort(404, 'Shared image file not found on disk.');
-        }
-
-        // GD Library එකෙන් WebP එක කියවා ගැනීම
-        $gdImage = @imagecreatefromwebp($physicalPath);
+        // GD Library එකෙන් Cloudinary WebP එක කියවා ගැනීම
+        $gdImage = @imagecreatefromwebp($cloudUrl);
         
         if (!$gdImage) {
-            // GD fail උනොත් original file එකම download වෙන්න දෙනවා (Fallback safety)
-            return response()->download($physicalPath);
+            // GD fail උනොත් (සමහරවිට සර්වර් එකේ allow_url_fopen off නම්), 
+            // කෙලින්ම Cloudinary ලින්ක් එකට redirect කරනවා
+            return redirect($cloudUrl);
         }
 
         // Guest name එකෙන් slug එකක් හදා filenames sanitize කිරීම
-        $fileName = Str::slug($image->guest_name) . '_wedding_shared_moment.jpg';
+        $fileName = \Illuminate\Support\Str::slug($image->guest_name) . '_wedding_shared_moment.jpg';
 
         // Laravel Stream download එක හරහා memory save වන සේ JPG එක Output කිරීම
         return response()->streamDownload(function() use ($gdImage) {

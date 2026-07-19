@@ -224,13 +224,12 @@ class InvitationController extends Controller
     /**
      * Handle AJAX Guest shared photo upload.
      */
-    public function uploadPhoto($slug, Request $request)
+   public function uploadPhoto($slug, Request $request)
     {
         $wedding = Wedding::where('slug', $slug)->firstOrFail();
-        App::setLocale($wedding->invite_language ?? 'en');
         $guestName = Session::get('guest_name', 'Anonymous Guest');
-
         $user = $wedding->user;
+
         $hasGuestGallery = ($user->package === 'premium' || intval($user->has_guest_gallery) === 1);
 
         if (!$hasGuestGallery) {
@@ -240,22 +239,30 @@ class InvitationController extends Controller
         if ($request->hasFile('guest_image')) {
             $file = $request->file('guest_image');
             
-            $targetDir = 'uploads/guest_gallery';
-            $newFilename = uniqid('guest_') . '.webp';
+            $imageData = 'data:image/' . $file->extension() . ';base64,' . base64_encode(file_get_contents($file->getRealPath()));
             
-            $file->move(public_path($targetDir), $newFilename);
-            $dbPath = $targetDir . '/' . $newFilename;
+            $cloudName = env('CLOUDINARY_CLOUD_NAME');
+            $preset = env('CLOUDINARY_UPLOAD_PRESET');
 
-            // Save to guest_gallery
-            $wedding->guestGalleries()->create([
-                'guest_name' => $guestName,
-                'image_path' => $dbPath,
+            $response = Http::asForm()->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/upload", [
+                'file' => $imageData,
+                'upload_preset' => $preset,
+                'folder' => 'lumus/guest_gallery',
             ]);
 
-            return response()->json(['success' => true, 'message' => 'Moment shared successfully!']);
+            if ($response->successful()) {
+                $dbPath = $response->json('secure_url');
+
+                $wedding->guestGalleries()->create([
+                    'guest_name' => $guestName,
+                    'image_path' => $dbPath,
+                ]);
+
+                return response()->json(['success' => true, 'message' => 'Moment shared successfully!']);
+            }
         }
 
-        return response()->json(['success' => false, 'message' => 'Failed to save image.']);
+        return response()->json(['success' => false, 'message' => 'Failed to save image to cloud.']);
     }
 
     /* ================= DYNAMIC CONTROLLER COLOR HELPERS ================= */

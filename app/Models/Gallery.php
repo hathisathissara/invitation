@@ -14,6 +14,7 @@ class Gallery extends Model
     protected $fillable = [
         'wedding_id',
         'image_path',
+        'public_id',
     ];
 
     public function wedding()
