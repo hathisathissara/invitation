@@ -1,0 +1,30 @@
+/* Layout Row overrides */
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 10px; }
+.gallery-item-card { background: #ffffff; border: 1px solid #e8ecf0; border-radius: 14px; overflow: hidden; transition: transform 0.2s, border-color 0.2s; display: flex; flex-direction: column; }
+.gallery-item-card:hover { transform: translateY(-3px); border-color: rgba(201,169,110,0.3); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+
+.img-container { height: 160px; overflow: hidden; position: relative; background: #f1f5f9; }
+.img-container img { width: 100%; height: 100%; object-fit: cover; }
+
+.meta-container { padding: 12px; text-align: left; flex-grow: 1; }
+.meta-uploader { font-size: 0.82rem; font-weight: 700; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meta-uploader i { color: #9ea3b0; }
+.meta-date { font-size: 0.7rem; color: #9ea3b0; margin-top: 4px; }
+.meta-date i { color: rgba(201,169,110,0.5); }
+
+/* Download & Delete Buttons Layout */
+.action-button-row { display: flex; gap: 6px; padding: 0 12px 12px; }
+
+.btn-download-moment { flex: 1; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); color: #16a34a; padding: 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s; text-decoration: none; }
+.btn-download-moment:hover { background: #16a34a; color: white; }
+
+.btn-delete-moment { flex: 1; border: 1px solid rgba(225,29,72,0.15); background: #fff1f2; color: #e11d48; padding: 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s; text-decoration: none; }
+.btn-delete-moment:hover { background: #ffe4e6; color: #e11d48; }
+
+/* Locked upgrade card theme */
+.locked-upgrade-card { background: #ffffff; border: 1px solid #e8ecf0; border-radius: 20px; padding: 40px; text-align: center; max-width: 580px; margin: 40px auto; }
+.locked-upgrade-card h4 { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 600; color: #1a1a2e; }
+.locked-upgrade-card p { font-size: 0.85rem; color: #9ea3b0; }
+
+.topbar-btn-gold { background: linear-gradient(135deg, #c9a96e, #a07840); color: #0f0f1a; border: none; border-radius: 10px; padding: 12px 24px; font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+.topbar-btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(201,169,110,0.3); color: #0f0f1a; }

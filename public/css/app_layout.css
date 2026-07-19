@@ -1,0 +1,511 @@
+/* Clean Reset */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: "Inter", sans-serif;
+    background: #f4f6fa;
+    min-height: 100vh;
+    color: #1e1e2d;
+    overflow-x: hidden;
+}
+
+/* Grid Layout structure */
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+    width: 100vw;
+}
+
+/* ================== SIDEBAR ================== */
+.sidebar {
+    width: 260px;
+    background: #11101d;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 30px 20px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 1010;
+}
+.sidebar-brand {
+    margin-bottom: 35px;
+    text-align: left;
+    padding-left: 8px;
+}
+.logo-text {
+    font-family: "Great Vibes", cursive;
+    font-size: 2.1rem;
+    color: #c9a96e;
+    text-decoration: none;
+    display: block;
+    line-height: 1;
+}
+.logo-sub {
+    font-size: 0.58rem;
+    color: rgba(201, 169, 110, 0.4);
+    font-weight: 700;
+    letter-spacing: 2px;
+    display: block;
+    margin-top: 4px;
+}
+
+/* Profile Widget */
+.profile-widget {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 20px;
+}
+.profile-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #c9a96e;
+    color: #11101d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.88rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    text-align: left;
+}
+.profile-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.profile-role {
+    font-size: 0.62rem;
+    color: #c9a96e;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-top: 2px;
+}
+
+/* ⚠️ Sidebar status pending warning banner styling */
+.sidebar-status-banner {
+    margin: 0 4px 18px;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.74rem;
+    color: #f59e0b;
+    text-align: left;
+    line-height: 1.5;
+}
+.sidebar-status-banner a {
+    color: #f59e0b;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/* Sidebar Menu */
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+.menu-group-label {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.25);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin: 16px 0 6px 12px;
+    text-align: left;
+}
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 16px;
+    border-radius: 10px;
+    color: #9ea3b0;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: all 0.25s;
+    text-align: left;
+}
+.menu-item i {
+    font-size: 1rem;
+    width: 18px;
+    text-align: center;
+}
+.menu-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+}
+.menu-item.active {
+    background: rgba(201, 169, 110, 0.1);
+    color: #c9a96e;
+    font-weight: 600;
+}
+
+.highlight-btn {
+    color: #f59e0b !important;
+}
+.highlight-btn i {
+    color: #f59e0b !important;
+}
+.highlight-btn:hover {
+    background: rgba(245, 158, 11, 0.08) !important;
+    color: #f59e0b !important;
+}
+
+/* Sidebar Logout button */
+.sidebar-logout {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 16px;
+    border-radius: 10px;
+    color: #fca5a5;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: all 0.25s;
+    margin-top: auto;
+}
+.sidebar-logout:hover {
+    background: rgba(239, 68, 68, 0.08);
+}
+
+/* ================== MAIN CONTENT WRAPPER ================== */
+.main-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Topbar */
+.topbar {
+    height: 75px;
+    background: #ffffff;
+    border-bottom: 1px solid #e8ecf0;
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+.topbar-left {
+    display: flex;
+    align-items: center;
+}
+.topbar-page-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e1e2d;
+}
+.topbar-right {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Lock pending badges */
+.topbar-lock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #ef4444;
+}
+
+/* Global Header Buttons */
+.btn-preview {
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #4b5563;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-preview:hover {
+    background: #f9fafb;
+    color: #1f2937;
+}
+.btn-copy-link {
+    background: #c9a96e;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #11101d;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+.btn-copy-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(201, 169, 110, 0.3);
+}
+
+/* Preview Only Header Button */
+.topbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-family: "Inter", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+}
+.topbar-btn-outline {
+    background: transparent;
+    border: 1px solid #e8ecf0;
+    color: #4b5563;
+}
+.topbar-btn-outline:hover {
+    border-color: #c9a96e;
+    color: #c9a96e;
+    background: rgba(201, 169, 110, 0.04);
+}
+.topbar-btn-amber {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #d97706;
+    font-weight: 700;
+}
+.topbar-btn-amber:hover {
+    background: rgba(245, 158, 11, 0.18);
+    color: #d97706;
+}
+
+/* Dynamic Content Container */
+.content-body {
+    padding: 40px;
+    flex-grow: 1;
+}
+
+/* Toast Notification (Copy alert) */
+.toast-notif {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #11101d;
+    color: #c9a96e;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-family: "Inter", sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(201, 169, 110, 0.2);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.35s ease;
+}
+.toast-notif.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.sidebar-tagline {
+    font-size: 0.68rem;
+    color: rgba(201, 169, 110, 0.45);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+/* Mobile Menu Hamburger Toggler */
+.mobile-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: #1e1e2d;
+    cursor: pointer;
+    margin-right: 12px;
+}
+
+/* ================== RESPONSIVE ================== */
+
+/* Tablet / small laptop */
+@media (max-width: 900px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        transform: translateX(-100%);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+        transition: transform 0.3s ease;
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    .main-wrapper {
+        width: 100%;
+    }
+    .topbar {
+        left: 0;
+        padding: 0 16px;
+    }
+    .topbar-page-title {
+        display: none;
+    }
+    .topbar-btn {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+    .topbar-right {
+        gap: 8px;
+    }
+    .content-body {
+        padding: 20px;
+    }
+    .mobile-toggle {
+        display: block;
+    }
+}
+
+/* Mobile phones */
+@media (max-width: 600px) {
+    .sidebar {
+        width: 82%;
+        max-width: 300px;
+        padding: 22px 16px;
+    }
+    .logo-text {
+        font-size: 1.7rem;
+    }
+    .sidebar-tagline {
+        font-size: 0.5rem;
+    }
+
+    .profile-widget {
+        padding: 10px;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+    .profile-avatar {
+        width: 34px;
+        height: 34px;
+        font-size: 0.78rem;
+    }
+    .profile-name {
+        font-size: 0.8rem;
+    }
+    .profile-role {
+        font-size: 0.58rem;
+    }
+
+    .sidebar-status-banner {
+        font-size: 0.7rem;
+        padding: 9px 10px;
+        margin-bottom: 14px;
+    }
+
+    .menu-group-label {
+        margin: 12px 0 5px 10px;
+    }
+    .menu-item {
+        padding: 10px 12px;
+        font-size: 0.84rem;
+        gap: 12px;
+    }
+
+    .topbar {
+        height: 62px;
+        padding: 0 14px;
+    }
+    .topbar-right {
+        gap: 6px;
+        flex-wrap: nowrap;
+    }
+    .topbar-btn {
+        padding: 8px 10px;
+        font-size: 0;
+        gap: 0;
+    }
+    .topbar-btn i {
+        font-size: 0.95rem;
+    }
+    .topbar-lock-badge {
+        padding: 7px 10px;
+        font-size: 0;
+        gap: 0;
+    }
+    .topbar-lock-badge i {
+        font-size: 0.85rem;
+    }
+
+    .content-body {
+        padding: 16px;
+    }
+
+    .toast-notif {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        justify-content: center;
+        font-size: 0.8rem;
+        padding: 10px 16px;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+    .sidebar {
+        width: 88%;
+    }
+    .topbar-btn {
+        padding: 6px 8px;
+    }
+    .content-body {
+        padding: 12px;
+    }
+}

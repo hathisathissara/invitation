@@ -1,0 +1,46 @@
+/* Container & Branding */
+.register-container { width: 100%; max-width: 580px; position: relative; z-index: 1; }
+.reg-brand { text-align: center; margin-bottom: 32px; }
+.reg-logo { font-family: 'Great Vibes', cursive; font-size: 2.4rem; color: #c9a96e; display: block; }
+.reg-tagline { font-size: 0.82rem; color: #9e9aaa; margin-top: 4px; }
+
+/* Steps Indicator */
+.steps-indicator { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 32px; }
+.step-dot { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.step-circle { width: 36px; height: 36px; border-radius: 50%; border: 2px solid rgba(201,169,110,0.2); background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #9e9aaa; transition: all 0.3s; }
+.step-circle.active { background: linear-gradient(135deg, #c9a96e, #a07840); border-color: #c9a96e; color: #0f0f1a; box-shadow: 0 4px 15px rgba(201,169,110,0.3); }
+.step-circle.done { background: rgba(201,169,110,0.12); border-color: rgba(201,169,110,0.4); color: #c9a96e; }
+.step-label { font-size: 0.62rem; color: #9e9aaa; text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap; }
+.step-line { width: 60px; height: 1px; background: rgba(201,169,110,0.15); margin: 0 8px; margin-bottom: 22px; }
+
+/* Card & Forms */
+.reg-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(201,169,110,0.12); border-radius: 24px; padding: 40px 44px; backdrop-filter: blur(20px); box-shadow: 0 20px 60px rgba(0,0,0,0.3), inset 0 1px 0 rgba(201,169,110,0.08); }
+@media (max-width: 480px) { .reg-card { padding: 32px 24px; } }
+.step-panel { display: none; }
+.step-panel.active { display: block; }
+.step-heading { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 600; color: #e8e4dc; margin-bottom: 4px; }
+.step-sub { font-size: 0.83rem; color: #9e9aaa; margin-bottom: 28px; }
+.form-group { margin-bottom: 18px; }
+label { display: block; font-size: 0.75rem; font-weight: 600; color: #9e9aaa; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+.required { color: rgba(201,169,110,0.7); margin-left: 3px; }
+.input-wrap { position: relative; }
+.input-wrap i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: rgba(201,169,110,0.35); font-size: 0.9rem; }
+input[type="text"], input[type="email"], input[type="password"], input[type="date"] { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(201,169,110,0.15); border-radius: 12px; padding: 13px 16px 13px 44px; color: #e8e4dc; font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; transition: all 0.25s; }
+input:focus { border-color: rgba(201,169,110,0.45); background: rgba(201,169,110,0.04); box-shadow: 0 0 0 3px rgba(201,169,110,0.07); }
+input::placeholder { color: rgba(232,228,220,0.2); }
+input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
+
+/* Buttons */
+.btn-next, .btn-prev, .btn-submit { border: none; border-radius: 12px; padding: 13px 28px; font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+.btn-next, .btn-submit { background: linear-gradient(135deg, #c9a96e, #a07840); color: #0f0f1a; }
+.btn-next:hover, .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(201,169,110,0.3); }
+.btn-prev { background: rgba(255,255,255,0.05); color: #9e9aaa; border: 1px solid rgba(255,255,255,0.08); }
+.btn-prev:hover { background: rgba(255,255,255,0.08); color: #e8e4dc; }
+.btn-row { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; gap: 12px; }
+.btn-row.end { justify-content: flex-end; }
+.error-box { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 12px; padding: 12px 16px; color: #fca5a5; font-size: 0.84rem; margin-bottom: 20px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+.signin-link { text-align: center; margin-top: 20px; font-size: 0.82rem; color: #9e9aaa; }
+.signin-link a { color: #c9a96e; }
+.signin-link a:hover { text-decoration: underline; }
