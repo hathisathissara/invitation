@@ -6,19 +6,17 @@ use App\Models\User;
 use App\Models\Wedding;
 use App\Models\Gallery;
 use App\Models\GuestGallery;
-use App\Models\Event;
-use App\Models\Guest;
-use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
     /**
-     * Display the main Admin Dashboard (index.php).
+     * Display the main Admin Dashboard.
      */
     public function index()
     {
@@ -28,29 +26,21 @@ class AdminController extends Controller
         $refundRequestsCount = User::where('role', 'couple')->whereNotNull('refund_requested_at')->count();
         $upgradeRequestsCount = User::where('role', 'couple')->whereNotNull('pending_upgrade_plan')->whereNotNull('upgrade_slip')->count();
 
-        // Registered couples
         $users = User::where('role', 'couple')->with('wedding')->orderBy('id', 'desc')->get();
 
         return view('admin.index', compact('users', 'total', 'active', 'pending', 'refundRequestsCount', 'upgradeRequestsCount'));
     }
+
     /**
-     * AJAX Live updates for Admin statistics.
+     * AJAX Live stats.
      */
-      public function liveStats()
+    public function liveStats()
     {
-        if (!auth()->check() || auth()->user()->role !== 'admin') {
-            return response()->json(['users' => []], 403);
-        }
         $users = User::where('role', 'couple')->with('wedding')->orderBy('id', 'desc')->get();
         
         $formatted = $users->map(function ($u) {
             $wedding_past = !empty($u->wedding->wedding_date) && strtotime($u->wedding->wedding_date) < strtotime('today');
-            
-            // 💡 Laravel route helper එක භාවිතයෙන් සැබෑම නිවැරදි absolute link එක auto-generate කිරීම
-            $invite_url = '';
-            if ($u->wedding && $u->wedding->slug) {
-                $invite_url = route('invitation.invite', $u->wedding->slug);
-            }
+            $invite_url = $u->wedding && $u->wedding->slug ? route('invitation.invite', $u->wedding->slug) : '';
 
             $notice_sent = !empty($u->deletion_notice_sent_at);
             $days_left = 0;
@@ -62,11 +52,6 @@ class AdminController extends Controller
                 $can_delete_now = $seconds_left <= 0;
             }
 
-            $slip_ext = null;
-            if (!empty($u->payment_slip)) {
-                $slip_ext = strtolower(pathinfo($u->payment_slip, PATHINFO_EXTENSION));
-            }
-
             return [
                 'id' => $u->id,
                 'name' => $u->name,
@@ -76,14 +61,14 @@ class AdminController extends Controller
                 'has_guest_gallery' => !empty($u->has_guest_gallery),
                 'wedding_date' => $u->wedding->wedding_date ? date('d M Y', strtotime($u->wedding->wedding_date)) : null,
                 'wedding_past' => $wedding_past,
-                'payment_slip' => !empty($u->payment_slip) ? asset($u->payment_slip) : null,
-                'slip_is_pdf' => ($slip_ext === 'pdf'),
+                'payment_slip' => $u->payment_slip,
+                'slip_is_pdf' => strtolower(pathinfo($u->payment_slip, PATHINFO_EXTENSION)) === 'pdf',
                 'refund_requested' => !empty($u->refund_requested_at),
                 'upgrade_pending' => !empty($u->pending_upgrade_plan),
                 'wedding_id' => $u->wedding ? $u->wedding->id : null,
-                'slug' => $u->wedding ? $u->wedding->slug : null, // 👈 💡 AJAX එකට slug එක මෙතනින් පාස් කළා!
+                'slug' => $u->wedding ? $u->wedding->slug : null,
                 'has_slug' => !empty($u->wedding->slug),
-                'invite_url' => $invite_url, // 👈 💡 Absolute URL එක ලස්සනට වැටේවි
+                'invite_url' => $invite_url,
                 'notice_sent' => $notice_sent,
                 'days_left' => $days_left,
                 'can_delete_now' => $can_delete_now,
@@ -101,7 +86,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Activate or Deactivate Couple account.
+     * Activate / Deactivate account.
      */
     public function toggleStatus($id)
     {
@@ -112,9 +97,9 @@ class AdminController extends Controller
 
         if ($newStatus === 'active') {
             try {
-                $inviteUrl = url('/invitation/' . ($user->wedding->slug ?? ''));
-                Mail::raw("Hi {$user->name},\n\nYour Lumos Studio digital wedding invitation is now ACTIVE and live! 🎉\n\nLink: {$inviteUrl}\n\nBest Regards,\nLumos Studio Team", function($message) use ($user) {
-                    $message->to($user->email)->subject('Account Activated! - Lumos Studio');
+                $inviteUrl = $user->wedding && $user->wedding->slug ? route('invitation.invite', $user->wedding->slug) : '';
+                Mail::raw("Hi {$user->name},\n\nYour Lumus Studio digital wedding invitation is now ACTIVE and live! 🎉\n\nLink: {$inviteUrl}\n\nBest Regards,\nLumus Studio Team", function($message) use ($user) {
+                    $message->to($user->email)->subject('Account Activated! - Lumus Studio');
                 });
             } catch (\Exception $e) {}
         }
@@ -123,7 +108,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Send 7-day Deletion Warning Mail.
+     * Deletion Warning.
      */
     public function notifyDelete($id)
     {
@@ -131,7 +116,7 @@ class AdminController extends Controller
 
         try {
             Mail::raw("Hi {$user->name},\n\nYour wedding date has passed, and your invitation is scheduled for permanent deletion in 7 days.\n\nIf you have any questions or want to extend, please contact us immediately.", function($message) use ($user) {
-                $message->to($user->email)->subject('7-Day Deletion Notice - Lumos Studio');
+                $message->to($user->email)->subject('7-Day Deletion Notice - Lumus Studio');
             });
             
             $user->update(['deletion_notice_sent_at' => now()]);
@@ -142,7 +127,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Confirm Deletion Page (legacy admin_delete_account.php)
+     * Confirm Deletion Page.
      */
     public function confirmDelete($id)
     {
@@ -151,38 +136,40 @@ class AdminController extends Controller
     }
 
     /**
-     * Permanently Destroy User Account (Deletes files first, cascade DB records)
+     * Permanently Destroy User Account (Deletes Cloudinary files first)
      */
     public function destroyUser($id)
     {
         $user = User::findOrFail($id);
         $wedding = $user->wedding;
 
-        // 1. Delete all gallery files from disk
+        // 1. Deleting all gallery files from Cloudinary [2]
         if ($wedding) {
             foreach ($wedding->galleries as $img) {
-                $path = public_path($img->image_path);
-                if (File::exists($path)) File::delete($path);
+                $this->deleteCloudinaryFile($img->image_path, 'lumus/gallery');
             }
 
             foreach ($wedding->guestGalleries as $img) {
-                $path = public_path($img->image_path);
-                if (File::exists($path)) File::delete($path);
+                $this->deleteCloudinaryFile($img->image_path, 'lumus/guest_gallery');
             }
         }
 
-        // 2. Delete payment slip
-        if (!empty($user->payment_slip) && !str_starts_with($user->payment_slip, 'http')) {
-            $path = public_path($user->payment_slip);
-            if (File::exists($path)) File::delete($path);
+        // 2. Delete payment slip from Cloudinary [2]
+        if (!empty($user->payment_slip)) {
+            $this->deleteCloudinaryFile($user->payment_slip, 'lumus/slips');
         }
 
-        // 3. Delete user
+        // 3. Delete upgrade slip from Cloudinary
+        if (!empty($user->upgrade_slip)) {
+            $this->deleteCloudinaryFile($user->upgrade_slip, 'lumus/slips');
+        }
+
+        // 4. Delete user (cascade DB delete) [2]
         $user->delete();
 
         try {
             Mail::raw("Hi {$user->name},\n\nYour account has been permanently deleted in accordance with the deletion schedule. All files and data have been safely wiped.", function($message) use ($user) {
-                $message->to($user->email)->subject('Account Deleted - Lumos Studio');
+                $message->to($user->email)->subject('Account Deleted - Lumus Studio');
             });
         } catch (\Exception $e) {}
 
@@ -191,7 +178,7 @@ class AdminController extends Controller
 
     /* =====================================================================
        🔥 3. UPGRADES PANEL MANAGEMENT
-       ==================================================================== */
+       ===================================================================== */
 
     public function upgradesIndex()
     {
@@ -206,9 +193,6 @@ class AdminController extends Controller
 
     public function liveUpgrades()
     {
-        if (!auth()->check() || auth()->user()->role !== 'admin') {
-            return response()->json(['upgrade_requests' => []], 403);
-        }
         $requests = User::where('role', 'couple')
             ->whereNotNull('pending_upgrade_plan')
             ->whereNotNull('upgrade_slip')
@@ -243,10 +227,9 @@ class AdminController extends Controller
             $target_package = $parts[0] ?? 'standard';
             $target_gallery = intval($parts[1] ?? 0);
 
-            // Delete old slip
+            // Delete old slip from Cloudinary [2]
             if (!empty($user->payment_slip)) {
-                $path = public_path($user->payment_slip);
-                if (File::exists($path)) File::delete($path);
+                $this->deleteCloudinaryFile($user->payment_slip, 'lumus/slips');
             }
 
             // Promote and swap slip files
@@ -261,7 +244,7 @@ class AdminController extends Controller
             try {
                 $new_plan_readable = ucfirst($target_package) . ($target_gallery ? " + Guest Gallery" : "");
                 Mail::raw("Hi {$user->name},\n\nYour package upgrade request has been APPROVED! You are now upgraded to the {$new_plan_readable}.", function($message) use ($user) {
-                    $message->to($user->email)->subject('Upgrade Approved! - Lumos Studio');
+                    $message->to($user->email)->subject('Upgrade Approved! - Lumus Studio');
                 });
             } catch (\Exception $e) {}
 
@@ -275,10 +258,9 @@ class AdminController extends Controller
     {
         $user = User::findOrFail($id);
 
-        // Delete upgrade slip file
-        if (!empty($user->upgrade_slip) && !str_starts_with($user->upgrade_slip, 'http')) {
-            $path = public_path($user->upgrade_slip);
-            if (File::exists($path)) File::delete($path);
+        // Delete upgrade slip from Cloudinary [2]
+        if (!empty($user->upgrade_slip)) {
+            $this->deleteCloudinaryFile($user->upgrade_slip, 'lumus/slips');
         }
 
         $user->update([
@@ -309,9 +291,6 @@ class AdminController extends Controller
 
     public function liveRefunds()
     {
-        if (!auth()->check() || auth()->user()->role !== 'admin') {
-            return response()->json(['refund_requests' => [], 'payouts' => []], 403);
-        }
         // Phase 1: Pending Refund Reviews
         $requests = User::where('refund_status', 'pending')
             ->whereNotNull('refund_requested_at')
@@ -366,7 +345,7 @@ class AdminController extends Controller
 
         try {
             Mail::raw("Hi {$user->name},\n\nWe have approved your refund request! Please go to your Activate Account dashboard page and enter your Bank Account details so we can process your payout.", function($message) use ($user) {
-                $message->to($user->email)->subject('Refund Approved! - Lumos Studio');
+                $message->to($user->email)->subject('Refund Approved! - Lumus Studio');
             });
         } catch (\Exception $e) {}
 
@@ -383,7 +362,7 @@ class AdminController extends Controller
 
         try {
             Mail::raw("Hi {$user->name},\n\nYour refund request has been declined because your invitation link has already been opened or active responses have been recorded.", function($message) use ($user) {
-                $message->to($user->email)->subject('Refund Request Declined - Lumos Studio');
+                $message->to($user->email)->subject('Refund Request Declined - Lumus Studio');
             });
         } catch (\Exception $e) {}
 
@@ -401,17 +380,15 @@ class AdminController extends Controller
             $refund_amount += 2000;
         }
 
-        // Delete files
-        if (!empty($user->payment_slip) && !str_starts_with($user->payment_slip, 'http')) {
-        $path = public_path($user->payment_slip);
-        if (File::exists($path)) File::delete($path);
-}   
-        if (!empty($user->upgrade_slip) && !str_starts_with($user->upgrade_slip, 'http')) {
-            $path = public_path($user->upgrade_slip);
-        if (File::exists($path)) File::delete($path);
-}
+        // Delete payment slips from Cloudinary [2]
+        if (!empty($user->payment_slip)) {
+            $this->deleteCloudinaryFile($user->payment_slip, 'lumus/slips');
+        }
+        if (!empty($user->upgrade_slip)) {
+            $this->deleteCloudinaryFile($user->upgrade_slip, 'lumus/slips');
+        }
 
-        // Reset user
+        // Reset user [2]
         $user->update([
             'status' => 'pending', 
             'refund_status' => 'completed', 
@@ -426,10 +403,40 @@ class AdminController extends Controller
 
         try {
             Mail::raw("Hi {$user->name},\n\nYour refund of Rs. " . number_format($refund_amount) . " has been successfully transferred to your bank account! Thank you.", function($message) use ($user) {
-                $message->to($user->email)->subject('Refund Payout Completed - Lumos Studio');
+                $message->to($user->email)->subject('Refund Payout Completed - Lumus Studio');
             });
         } catch (\Exception $e) {}
 
         return redirect()->route('admin.refunds')->with('status', 'Refund complete payout marked done successfully!');
+    }
+
+    /* =====================================================================
+       💡 CLOUDINARY FILE DELETION HELPER (Zero Dependencies API) [2]
+       ===================================================================== */
+    private function deleteCloudinaryFile($url, $folder)
+    {
+        if (empty($url) || !str_starts_with($url, 'http')) return;
+        
+        // Extract public ID from the URL [2]
+        $urlParts = explode('/', $url);
+        $fileNameWithExt = end($urlParts);
+        $fileName = explode('.', $fileNameWithExt)[0];
+        $publicId = $folder . '/' . $fileName;
+
+        $cloudName = env('CLOUDINARY_CLOUD_NAME');
+        $apiKey = env('CLOUDINARY_API_KEY');
+        $apiSecret = env('CLOUDINARY_API_SECRET');
+        $timestamp = time();
+
+        // SHA-1 signature authentication [2]
+        $signature = sha1("public_id={$publicId}&timestamp={$timestamp}{$apiSecret}");
+
+        // Call Cloudinary Admin API dynamically [2]
+        \Illuminate\Support\Facades\Http::asForm()->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/destroy", [
+            'public_id' => $publicId,
+            'api_key' => $apiKey,
+            'timestamp' => $timestamp,
+            'signature' => $signature,
+        ]);
     }
 }

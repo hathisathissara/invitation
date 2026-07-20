@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rules;
 
 class SettingsController extends Controller
@@ -25,7 +25,7 @@ class SettingsController extends Controller
     }
 
     /**
-     * Update wedding details and conditionally update slug.
+     * Update wedding details.
      */
     public function updateWedding(Request $request)
     {
@@ -44,12 +44,10 @@ class SettingsController extends Controller
         
         $slugChanged = false;
 
-        // Bride හෝ Groom ගේ නම වෙනස් වුවහොත් පමණක් අලුත් Slug එකක් හදනවා
         if ($wedding->bride_name !== $bride || $wedding->groom_name !== $groom) {
-            $slugBase = Str::slug($bride . '-' . $groom);
+            $slugBase = \Illuminate\Support\Str::slug($bride . '-' . $groom);
             $slug = $slugBase;
             
-            // Ensure unique slug (excluding this wedding's own ID)
             while (Wedding::where('slug', $slug)->where('id', '!=', $wedding->id)->exists()) {
                 $slug = $slugBase . '-' . rand(100, 999);
             }
@@ -65,7 +63,6 @@ class SettingsController extends Controller
             'slug' => $wedding->slug
         ]);
 
-        // User ගේ display name එකත් Wedding names වලට update කරනවා
         $user->update([
             'name' => $bride . ' & ' . $groom
         ]);
@@ -106,7 +103,7 @@ class SettingsController extends Controller
     }
 
     /**
-     * Delete account permanently (Manually wipe disk files first).
+     * Delete account permanently (Self-Delete with Cloudinary Cleanups).
      */
     public function destroy(Request $request)
     {
@@ -122,25 +119,29 @@ class SettingsController extends Controller
                 ->with('open_section', 'danger');
         }
 
-        // 1. Server disk එකේ තියෙන Couple ගේ gallery පින්තූර මකා දැමීම
+        // 1. Couple ගේ Gallery පින්තූර Cloudinary එකෙන් සදහටම මකා දැමීම [2]
         if ($wedding) {
             foreach ($wedding->galleries as $img) {
-                $path = public_path($img->image_path);
-                if (File::exists($path)) {
-                    File::delete($path);
-                }
+                $this->deleteCloudinaryFile($img->image_path, 'lumus/gallery');
             }
 
-            // 2. Server disk එකේ තියෙන Guest gallery පින්තූර මකා දැමීම
+            // 2. Guest Shared Gallery පින්තූර Cloudinary එකෙන් සදහටම මකා දැමීම [2]
             foreach ($wedding->guestGalleries as $img) {
-                $path = public_path($img->image_path);
-                if (File::exists($path)) {
-                    File::delete($path);
-                }
+                $this->deleteCloudinaryFile($img->image_path, 'lumus/guest_gallery');
             }
         }
 
-        // 3. User ව delete කිරීම ( cascadeOnDelete නිසා weddings, guests, tasks auto මැකෙනවා) [2]
+        // 3. Payment Slip එක Cloudinary එකෙන් මකා දැමීම [2]
+        if (!empty($user->payment_slip)) {
+            $this->deleteCloudinaryFile($user->payment_slip, 'lumus/slips');
+        }
+
+        // 4. Upgrade Slip එක Cloudinary එකෙන් මකා දැමීම (තිබේ නම්)
+        if (!empty($user->upgrade_slip)) {
+            $this->deleteCloudinaryFile($user->upgrade_slip, 'lumus/slips');
+        }
+
+        // 5. User ව Database එකෙන් මකා දැමීම (cascade delete) [2]
         $user->delete();
 
         // Session destroy & logout
@@ -149,5 +150,34 @@ class SettingsController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/login')->with('status', 'Your account and all associated data have been permanently deleted.');
+    }
+
+    /* =====================================================================
+       💡 CLOUDINARY FILE DELETION HELPER (Zero Dependencies API) [2]
+       ===================================================================== */
+    private function deleteCloudinaryFile($url, $folder)
+    {
+        if (empty($url) || !str_starts_with($url, 'http')) return;
+        
+        // Extract public ID from the URL [2]
+        $urlParts = explode('/', $url);
+        $fileNameWithExt = end($urlParts);
+        $fileName = explode('.', $fileNameWithExt)[0];
+        $publicId = $folder . '/' . $fileName;
+
+        $cloudName = env('CLOUDINARY_CLOUD_NAME');
+        $apiKey = env('CLOUDINARY_API_KEY');
+        $apiSecret = env('CLOUDINARY_API_SECRET');
+        $timestamp = time();
+
+        $signature = sha1("public_id={$publicId}&timestamp={$timestamp}{$apiSecret}");
+
+        // Call Cloudinary Admin API dynamically [2]
+        Http::asForm()->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/destroy", [
+            'public_id' => $publicId,
+            'api_key' => $apiKey,
+            'timestamp' => $timestamp,
+            'signature' => $signature,
+        ]);
     }
 }
