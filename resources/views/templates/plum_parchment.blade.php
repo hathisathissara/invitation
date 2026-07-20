@@ -663,8 +663,8 @@ window.addEventListener('DOMContentLoaded', function () {
     <div class="gallery-grid" id="guest-gallery-grid" style="max-width:720px; margin:0 auto 30px; padding-left:20px; padding-right:20px;">
         @if($guestImages->count() > 0)
             @foreach($guestImages as $g_img)
-            <div class="gallery-item reveal" onclick="openLightbox('{{ asset($g_img->image_path) }}')" style="border: 2px solid #22c55e;">
-                <img src="{{ asset($g_img->image_path) }}" alt="Guest moment" loading="lazy">
+            <div class="gallery-item reveal" onclick="openLightbox('{{$g_img->image_path}}')" style="border: 2px solid #22c55e;">
+                <img src="{{$g_img->image_path}}" alt="Guest moment" loading="lazy">
                 <!-- පින්තූරය එවූ අමුත්තාගේ නම යටින් පෙන්වයි -->
                 <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; font-size: 0.65rem; padding: 4px; font-family: 'Inter', sans-serif; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; z-index: 2;">
                     By {{ $g_img->guest_name }}
