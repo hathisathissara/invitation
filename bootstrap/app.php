@@ -13,16 +13,14 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         
-        // Custom Role Middleware
+        // 💡 Custom Role Middleware Alias
         $middleware->alias([
-            'role' => \App\Http\Middleware::CheckRole::class,
+            'role' => \App\Http\Middleware\CheckRole::class,
         ]);
 
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         
-        // 💡 අපි අර තාවකාලිකව දාපු Try-Catch එක අයින් කරලා ලාරවෙල් වල default 
-        // ආරක්ෂිත වගේම ලස්සන Exception Handler එක සක්‍රීය කළා.
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
