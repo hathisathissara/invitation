@@ -19,20 +19,19 @@ class InvitationController extends Controller
     {
         $wedding = Wedding::where('slug', $slug)->firstOrFail();
         
-        // App language එක මාරු කිරීම
         App::setLocale($wedding->invite_language ?? 'en');
 
         $user = $wedding->user;
         $isOwner = (auth()->check() && auth()->id() === $user->id);
         $isAdmin = (auth()->check() && auth()->user()->role === 'admin');
 
-        // Account එක Active නැත්නම් සහ Couple/Admin නොවේ නම් Coming Soon page එක පෙන්වීම [6]
+        // Coming Soon page
         if ($user->status !== 'active' && !$isOwner && !$isAdmin) {
             $themeColors = $this->getThemeColors($wedding->template_name ?? 'premium_gold');
             return view('invitation.coming_soon', compact('wedding', 'themeColors'));
         }
 
-        // Preview Mode handling for owner/admin
+        // Preview Mode
         if ($request->has('preview') && ($isOwner || $isAdmin)) {
             Session::put('guest_id', 0);
             Session::put('guest_name', 'Preview (Admin/Owner)');
@@ -47,9 +46,25 @@ class InvitationController extends Controller
         if ($request->has('t')) {
             $guest = Guest::where('wedding_id', $wedding->id)->where('invite_token', $request->t)->first();
             if ($guest) {
-                if (!$guest->is_opened) {
+                
+                // 🤖 💡 BOT DETECTION ALGORITHM (WhatsApp Preview block)
+                $userAgent = $request->header('User-Agent', '');
+                $isBot = false;
+                
+                // ප්‍රසිද්ධ සර්වර් බොට්ස්ලාගේ නම් ලැයිස්තුව
+                $botKeywords = ['WhatsApp', 'facebookexternalhit', 'TelegramBot', 'Twitterbot', 'LinkedInBot', 'Googlebot', 'Bingbot'];
+                foreach ($botKeywords as $keyword) {
+                    if (stripos($userAgent, $keyword) !== false) {
+                        $isBot = true;
+                        break;
+                    }
+                }
+
+                // රොබෝ කෙනෙක් නෙමෙයි නම් විතරක් Opened කියා සටහන් කරයි!
+                if (!$isBot && !$guest->is_opened) {
                     $guest->update(['is_opened' => true, 'opened_at' => now()]);
                 }
+
                 Session::put('guest_id', $guest->id);
                 Session::put('guest_name', $guest->name);
                 Session::put('invite_wedding_id', $wedding->id);
@@ -64,9 +79,22 @@ class InvitationController extends Controller
             $guests = Guest::where('wedding_id', $wedding->id)->get();
             foreach ($guests as $g) {
                 if ($this->normalizeWhatsappNumber($g->whatsapp_number) === $normalizedWa) {
-                    if (!$g->is_opened) {
+                    
+                    // Bot check for legacy links
+                    $userAgent = $request->header('User-Agent', '');
+                    $isBot = false;
+                    $botKeywords = ['WhatsApp', 'facebookexternalhit', 'TelegramBot', 'Twitterbot', 'LinkedInBot', 'Googlebot', 'Bingbot'];
+                    foreach ($botKeywords as $keyword) {
+                        if (stripos($userAgent, $keyword) !== false) {
+                            $isBot = true;
+                            break;
+                        }
+                    }
+
+                    if (!$isBot && !$g->is_opened) {
                         $g->update(['is_opened' => true, 'opened_at' => now()]);
                     }
+
                     Session::put('guest_id', $g->id);
                     Session::put('guest_name', $g->name);
                     Session::put('invite_wedding_id', $wedding->id);
