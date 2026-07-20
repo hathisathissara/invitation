@@ -1,11 +1,4 @@
 <?php return array (
-  'laravel/pao' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Laravel\\Pao\\Laravel\\ServiceProvider',
-    ),
-  ),
   'laravel/tinker' => 
   array (
     'providers' => 
