@@ -6,21 +6,37 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 
 // 💡 Vercel serverless eke filesystem read-only — /tmp විතරයි writable
-// bootstrap/cache සහ storage /tmp වලට redirect කරනවා
+// Laravel runtime-writable cache files /tmp වලට redirect කරනවා
 if (isset($_ENV['VERCEL']) || isset($_SERVER['VERCEL'])) {
-    $tmpCache = '/tmp/laravel/cache';
-    $tmpStorage = '/tmp/laravel/storage';
+    $tmpDir = '/tmp/laravel';
 
+    // Create all required writable directories in /tmp
     foreach ([
-        $tmpCache,
-        $tmpStorage . '/framework/cache/data',
-        $tmpStorage . '/framework/sessions',
-        $tmpStorage . '/framework/views',
-        $tmpStorage . '/logs',
+        $tmpDir,
+        $tmpDir . '/storage/framework/cache/data',
+        $tmpDir . '/storage/framework/sessions',
+        $tmpDir . '/storage/framework/views',
+        $tmpDir . '/storage/logs',
     ] as $dir) {
         if (!is_dir($dir)) {
             mkdir($dir, 0775, true);
         }
+    }
+
+    // 💡 Laravel's normalizeCachePath() reads these env vars to locate cache files.
+    // We redirect all runtime-written cache files to /tmp.
+    // packages.php stays at the pre-built read-only path — no env var needed for it.
+    $cacheEnvVars = [
+        'APP_SERVICES_CACHE' => $tmpDir . '/services.php',
+        'APP_CONFIG_CACHE'   => $tmpDir . '/config.php',
+        'APP_ROUTES_CACHE'   => $tmpDir . '/routes-v7.php',
+        'APP_EVENTS_CACHE'   => $tmpDir . '/events.php',
+    ];
+
+    foreach ($cacheEnvVars as $key => $path) {
+        putenv("{$key}={$path}");
+        $_ENV[$key]    = $path;
+        $_SERVER[$key] = $path;
     }
 }
 
@@ -55,10 +71,9 @@ $app = Application::configure(basePath: dirname(__DIR__))->withRouting(
 
     })->create();
 
-// 💡 Vercel eke /tmp path Laravel වලට set කරනවා
+// 💡 useStoragePath() is a real Laravel method — redirect storage to /tmp
 if (isset($_ENV['VERCEL']) || isset($_SERVER['VERCEL'])) {
     $app->useStoragePath('/tmp/laravel/storage');
-    $app->useCachePath('/tmp/laravel/cache');
 }
 
 return $app;
