@@ -38,6 +38,9 @@ class AdminController extends Controller
      */
       public function liveStats()
     {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            return response()->json(['users' => []], 403);
+        }
         $users = User::where('role', 'couple')->with('wedding')->orderBy('id', 'desc')->get();
         
         $formatted = $users->map(function ($u) {
@@ -203,6 +206,9 @@ class AdminController extends Controller
 
     public function liveUpgrades()
     {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            return response()->json(['upgrade_requests' => []], 403);
+        }
         $requests = User::where('role', 'couple')
             ->whereNotNull('pending_upgrade_plan')
             ->whereNotNull('upgrade_slip')
@@ -303,6 +309,9 @@ class AdminController extends Controller
 
     public function liveRefunds()
     {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            return response()->json(['refund_requests' => [], 'payouts' => []], 403);
+        }
         // Phase 1: Pending Refund Reviews
         $requests = User::where('refund_status', 'pending')
             ->whereNotNull('refund_requested_at')

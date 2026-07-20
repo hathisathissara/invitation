@@ -185,9 +185,14 @@ class PaymentController extends Controller
      */
     public function globalStatusCheck()
     {
-        $user = Auth::user();
-        return response()->json([
-            'status' => $user->role !== 'admin' ? $user->status : null
-        ]);
+
+        if (Auth::check()) {
+            $user = Auth::user();
+            return response()->json([
+                'status' => $user->role !== 'admin' ? $user->status : null
+            ]);
+        }
+        
+        return response()->json(['status' => null]);
     }
 }

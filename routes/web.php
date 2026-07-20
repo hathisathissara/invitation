@@ -106,7 +106,7 @@ Route::middleware(['auth','role:couple'])->prefix('dashboard')->group(function (
     Route::post('/payment/bank-details', [PaymentController::class, 'submitBankDetails'])->name('payment.bank-details');
     
     // Live polling endpoints for header and payment card
-    Route::get('/status-check', [PaymentController::class, 'globalStatusCheck'])->name('global.status-check');
+   
     Route::get('/payment/live-check', [PaymentController::class, 'paymentLiveCheck'])->name('payment.live-check');
 
      // Customize Invitation Routes
@@ -123,7 +123,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // 1. Admin Dashboard Home (legacy index.php)
     Route::get('/', [AdminController::class, 'index'])->name('admin.index');
     Route::get('/index', [AdminController::class, 'index']);
-    Route::get('/live-stats', [AdminController::class, 'liveStats'])->name('admin.live-stats');
     Route::get('/toggle-status/{id}', [AdminController::class, 'toggleStatus'])->name('admin.toggle-status');
     Route::get('/notify-delete/{id}', [AdminController::class, 'notifyDelete'])->name('admin.notify-delete');
     
@@ -133,13 +132,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     
     // 3. Upgrades Panel (legacy admin_upgrades.php)
     Route::get('/upgrades', [AdminController::class, 'upgradesIndex'])->name('admin.upgrades');
-    Route::get('/upgrades/live', [AdminController::class, 'liveUpgrades'])->name('admin.upgrades.live');
     Route::post('/upgrades/{id}/approve', [AdminController::class, 'approveUpgrade'])->name('admin.upgrades.approve');
     Route::post('/upgrades/{id}/reject', [AdminController::class, 'rejectUpgrade'])->name('admin.upgrades.reject');
     
     // 4. Refunds Panel (legacy admin_refunds.php)
     Route::get('/refunds', [AdminController::class, 'refundsIndex'])->name('admin.refunds');
-    Route::get('/refunds/live', [AdminController::class, 'liveRefunds'])->name('admin.refunds.live');
     Route::post('/refunds/{id}/approve', [AdminController::class, 'approveRefund'])->name('admin.refunds.approve');
     Route::post('/refunds/{id}/reject', [AdminController::class, 'rejectRefund'])->name('admin.refunds.reject');
     Route::post('/refunds/{id}/complete', [AdminController::class, 'completeRefund'])->name('admin.refunds.complete');
@@ -157,6 +154,13 @@ Route::get('/invitation/{slug}/view', [InvitationController::class, 'viewInvitat
 Route::post('/invitation/{slug}/rsvp', [InvitationController::class, 'submitRsvp'])->name('invitation.rsvp');
 Route::post('/invitation/{slug}/upload', [InvitationController::class, 'uploadPhoto'])->name('invitation.upload');
 Route::post('/i/{slug}/mark-opened', [InvitationController::class, 'markOpened'])->name('invitation.markOpened');
+
+ // 💡 පොදු ලින්ක් එකක් ලෙස පිටතින් ලියන්න (නමුත් අපි Controller එකෙන් මේක ආරක්ෂා කරනවා)
+Route::get('/dashboard/status-check', [PaymentController::class, 'globalStatusCheck'])->name('global.status-check');
+Route::get('/admin/live-stats', [AdminController::class, 'liveStats'])->name('admin.live-stats');
+Route::get('/admin/upgrades/live', [AdminController::class, 'liveUpgrades'])->name('admin.upgrades.live');
+Route::get('/admin/refunds/live', [AdminController::class, 'liveRefunds'])->name('admin.refunds.live');
+
 
 // Calendar ICS Download Route (Public)
 Route::get('/calendar/download/{id}', [CalendarController::class, 'download'])->name('calendar.download');
