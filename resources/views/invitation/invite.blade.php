@@ -10,7 +10,7 @@
     <meta property="og:title" content="{{ $wedding->bride_name }} &amp; {{ $wedding->groom_name }} — Wedding Invitation" />
     <meta property="og:description" content="Together with our families, we joyfully invite you to celebrate our wedding. Click to open your personal digital invitation." />
     <!-- Dynamic og:image generated based on whether hero cover image exists -->
-    <meta property="og:image" content="{{ !empty($wedding->hero_image) ? asset($wedding->hero_image) : asset('uploads/lumos.jpg') }}" />
+    <meta property="og:image" content="{{ !empty($wedding->hero_image) ? $wedding->hero_image : asset('uploads/lumos.jpg') }}" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:url" content="{{ url()->current() }}" />
@@ -20,7 +20,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $wedding->bride_name }} &amp; {{ $wedding->groom_name }} — Wedding Invitation">
     <meta name="twitter:description" content="You're invited! Open your personal digital wedding invitation.">
-    <meta name="twitter:image" content="{{ !empty($wedding->hero_image) ? asset($wedding->hero_image) : asset('uploads/lumos.jpg') }}">
+    <meta name="twitter:image" content="{{ !empty($wedding->hero_image) ? $wedding->hero_image : asset('uploads/lumos.jpg') }}">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
