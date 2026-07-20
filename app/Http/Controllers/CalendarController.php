@@ -24,7 +24,7 @@ class CalendarController extends Controller
         // VCALENDAR Format Start
         $vCalendar = "BEGIN:VCALENDAR\r\n";
         $vCalendar .= "VERSION:2.0\r\n";
-        $vCalendar .= "PRODID:-//Lumus Studio//Wedding Invitation//EN\r\n";
+        $vCalendar .= "PRODID:-//Lumos Studio//Wedding Invitation//EN\r\n";
 
         // Loop through events and add them
         foreach ($events as $event) {
@@ -32,7 +32,7 @@ class CalendarController extends Controller
             $start = Carbon::parse($event->event_date_time)->setTimezone('UTC')->format('Ymd\THis\Z');
             $end = Carbon::parse($event->event_date_time)->addHours(2)->setTimezone('UTC')->format('Ymd\THis\Z'); // Assuming 2 hours duration
             
-            $uid = md5($event->id . $wedding->id) . "@lumusstudio.com";
+            $uid = md5($event->id . $wedding->id) . "@lumosstudio.com";
             $summary = $event->event_name . " - " . $wedding->bride_name . " & " . $wedding->groom_name;
 
             $vCalendar .= "BEGIN:VEVENT\r\n";

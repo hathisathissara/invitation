@@ -110,8 +110,8 @@ class AdminController extends Controller
         if ($newStatus === 'active') {
             try {
                 $inviteUrl = url('/invitation/' . ($user->wedding->slug ?? ''));
-                Mail::raw("Hi {$user->name},\n\nYour Lumus Studio digital wedding invitation is now ACTIVE and live! 🎉\n\nLink: {$inviteUrl}\n\nBest Regards,\nLumus Studio Team", function($message) use ($user) {
-                    $message->to($user->email)->subject('Account Activated! - Lumus Studio');
+                Mail::raw("Hi {$user->name},\n\nYour Lumos Studio digital wedding invitation is now ACTIVE and live! 🎉\n\nLink: {$inviteUrl}\n\nBest Regards,\nLumos Studio Team", function($message) use ($user) {
+                    $message->to($user->email)->subject('Account Activated! - Lumos Studio');
                 });
             } catch (\Exception $e) {}
         }
@@ -128,7 +128,7 @@ class AdminController extends Controller
 
         try {
             Mail::raw("Hi {$user->name},\n\nYour wedding date has passed, and your invitation is scheduled for permanent deletion in 7 days.\n\nIf you have any questions or want to extend, please contact us immediately.", function($message) use ($user) {
-                $message->to($user->email)->subject('7-Day Deletion Notice - Lumus Studio');
+                $message->to($user->email)->subject('7-Day Deletion Notice - Lumos Studio');
             });
             
             $user->update(['deletion_notice_sent_at' => now()]);
@@ -179,7 +179,7 @@ class AdminController extends Controller
 
         try {
             Mail::raw("Hi {$user->name},\n\nYour account has been permanently deleted in accordance with the deletion schedule. All files and data have been safely wiped.", function($message) use ($user) {
-                $message->to($user->email)->subject('Account Deleted - Lumus Studio');
+                $message->to($user->email)->subject('Account Deleted - Lumos Studio');
             });
         } catch (\Exception $e) {}
 
@@ -255,7 +255,7 @@ class AdminController extends Controller
             try {
                 $new_plan_readable = ucfirst($target_package) . ($target_gallery ? " + Guest Gallery" : "");
                 Mail::raw("Hi {$user->name},\n\nYour package upgrade request has been APPROVED! You are now upgraded to the {$new_plan_readable}.", function($message) use ($user) {
-                    $message->to($user->email)->subject('Upgrade Approved! - Lumus Studio');
+                    $message->to($user->email)->subject('Upgrade Approved! - Lumos Studio');
                 });
             } catch (\Exception $e) {}
 
@@ -357,7 +357,7 @@ class AdminController extends Controller
 
         try {
             Mail::raw("Hi {$user->name},\n\nWe have approved your refund request! Please go to your Activate Account dashboard page and enter your Bank Account details so we can process your payout.", function($message) use ($user) {
-                $message->to($user->email)->subject('Refund Approved! - Lumus Studio');
+                $message->to($user->email)->subject('Refund Approved! - Lumos Studio');
             });
         } catch (\Exception $e) {}
 
@@ -374,7 +374,7 @@ class AdminController extends Controller
 
         try {
             Mail::raw("Hi {$user->name},\n\nYour refund request has been declined because your invitation link has already been opened or active responses have been recorded.", function($message) use ($user) {
-                $message->to($user->email)->subject('Refund Request Declined - Lumus Studio');
+                $message->to($user->email)->subject('Refund Request Declined - Lumos Studio');
             });
         } catch (\Exception $e) {}
 
@@ -417,7 +417,7 @@ class AdminController extends Controller
 
         try {
             Mail::raw("Hi {$user->name},\n\nYour refund of Rs. " . number_format($refund_amount) . " has been successfully transferred to your bank account! Thank you.", function($message) use ($user) {
-                $message->to($user->email)->subject('Refund Payout Completed - Lumus Studio');
+                $message->to($user->email)->subject('Refund Payout Completed - Lumos Studio');
             });
         } catch (\Exception $e) {}
 
