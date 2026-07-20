@@ -20,18 +20,19 @@ return Application::configure(basePath: dirname(__DIR__))
 
     })
    ->withExceptions(function (Exceptions $exceptions): void {
-        // 💡 Laravel Exception Handler එකට කියනවා වැරැද්දක් වුණු සැනින් 
-        // HTML views හොයන්නේ නැතුව කෙලින්ම සැබෑ වැරැද්ද (Original Error) Dump කරන්න කියලා.
+        
+        // 💡 ලාරවෙල් වල response() පාවිච්චි නොකර, සැබෑ PHP echo/exit හරහා සැබෑ වැරැද්ද පෙන්වීම
         $exceptions->render(function (\Throwable $e, Request $request) {
-            return response()->make(
-                "<div style='background:#fff5f5; border:1px solid #fc8181; padding:30px; border-radius:12px; font-family:sans-serif; max-width:800px; margin:40px auto; color:#2d3748; text-align: left;'>" .
+            $html = "<div style='background:#fff5f5; border:1px solid #fc8181; padding:30px; border-radius:12px; font-family:sans-serif; max-width:800px; margin:40px auto; color:#2d3748; text-align: left;'>" .
                 "<h2 style='color:#e53e3e; margin-top:0;'>💥 Laravel Original Error</h2>" .
                 "<p><strong>Message:</strong> <span style='color:#e53e3e;'>" . htmlspecialchars($e->getMessage()) . "</span></p>" .
                 "<p><strong>File:</strong> " . htmlspecialchars($e->getFile()) . " on line <strong>" . $e->getLine() . "</strong></p>" .
                 "<h3 style='margin-bottom:8px; margin-top:20px;'>Stack Trace:</h3>" .
                 "<pre style='background:#1a202c; color:#9ae6b4; padding:15px; border-radius:8px; overflow-x:auto; font-size:0.85rem; line-height:1.5;'>" . htmlspecialchars($e->getTraceAsString()) . "</pre>" .
-                "</div>",
-                500
-            );
+                "</div>";
+                
+            echo $html;
+            exit(1); // 👈 💡 සර්වර් එක මෙතනින් නවත්වනවා (No Laravel Response Dependency!)
         });
+
     })->create();
