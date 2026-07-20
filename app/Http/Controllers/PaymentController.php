@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 
 class PaymentController extends Controller
 {
@@ -14,28 +14,28 @@ class PaymentController extends Controller
      */
     public function index()
     {
-    $user = Auth::user();
+        $user = Auth::user();
 
-    // Calculate current plan value for upgrade balance calculations
-    $currentVal = 2500;
-    if ($user->package === 'standard') $currentVal = 5000;
-    if ($user->package === 'premium') $currentVal = 10000;
-    if ($user->has_guest_gallery == 1 && $user->package !== 'premium') $currentVal += 2000;
+        // Calculate current plan value for upgrade balance calculations
+        $currentVal = 2500;
+        if ($user->package === 'standard') $currentVal = 5000;
+        if ($user->package === 'premium') $currentVal = 10000;
+        if ($user->has_guest_gallery == 1 && $user->package !== 'premium') $currentVal += 2000;
 
-    // Calculate the fingerprint for live polling (මෙතනදී fingerprint එක හදනවා)
-    $initialStatusFingerprint = md5(implode('|', [
-        $user->status,
-        $user->refund_status,
-        $user->package,
-        $user->has_guest_gallery,
-        !empty($user->pending_upgrade_plan) ? '1' : '0',
-    ]));
+        // Calculate the fingerprint for live polling
+        $initialStatusFingerprint = md5(implode('|', [
+            $user->status,
+            $user->refund_status,
+            $user->package,
+            $user->has_guest_gallery,
+            !empty($user->pending_upgrade_plan) ? '1' : '0',
+        ]));
 
-    return view('payment.index', compact('user', 'currentVal', 'initialStatusFingerprint'));
+        return view('payment.index', compact('user', 'currentVal', 'initialStatusFingerprint'));
     }
 
     /**
-     * Handle initial bank slip upload.
+     * Handle initial bank slip upload (Cloudinary API).
      */
     public function storeSlip(Request $request)
     {
@@ -54,29 +54,42 @@ class PaymentController extends Controller
 
         if ($request->hasFile('bank_slip')) {
             $file = $request->file('bank_slip');
-            $newFilename = "slip_" . $user->id . "_" . time() . "." . $file->getClientOriginalExtension();
             
-            // Move file to public/uploads/slips
-            $file->move(public_path('uploads/slips'), $newFilename);
-            $dbPath = "uploads/slips/" . $newFilename;
+            // Dynamic base64 encode based on file mime-type (Supports Image and PDF!) [4]
+            $mimeType = $file->getClientMimeType();
+            $imageData = 'data:' . $mimeType . ';base64,' . base64_encode(file_get_contents($file->getRealPath()));
+            
+            $cloudName = env('CLOUDINARY_CLOUD_NAME');
+            $preset = env('CLOUDINARY_UPLOAD_PRESET');
 
-            $user->update([
-                'payment_slip' => $dbPath,
-                'status' => 'pending',
-                'package' => $selectedPackage,
-                'has_guest_gallery' => $addGallery,
-                'refund_status' => 'none',
-                'refund_requested_at' => null
+            // Upload directly to Cloudinary slips folder [4]
+            $response = Http::asForm()->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/upload", [
+                'file' => $imageData,
+                'upload_preset' => $preset,
+                'folder' => 'lumus/slips',
             ]);
 
-            return redirect()->route('payment.index')->with('status', 'Bank slip uploaded! We will review and activate your plan soon.');
+            if ($response->successful()) {
+                $dbPath = $response->json('secure_url'); // Cloudinary HTTPS link
+
+                $user->update([
+                    'payment_slip' => $dbPath,
+                    'status' => 'pending',
+                    'package' => $selectedPackage,
+                    'has_guest_gallery' => $addGallery,
+                    'refund_status' => 'none',
+                    'refund_requested_at' => null
+                ]);
+
+                return redirect()->route('payment.index')->with('status', 'Bank slip uploaded! We will review and activate your plan soon.');
+            }
         }
 
-        return back()->withErrors(['error' => 'File upload failed. Please try again.']);
+        return back()->withErrors(['error' => 'Bank slip upload failed. Please try again.']);
     }
 
     /**
-     * Handle upgrade bank slip upload.
+     * Handle upgrade bank slip upload (Cloudinary API).
      */
     public function upgradeSlip(Request $request)
     {
@@ -89,17 +102,30 @@ class PaymentController extends Controller
 
         if ($request->hasFile('upgrade_slip_file')) {
             $file = $request->file('upgrade_slip_file');
-            $newFilename = "upgrade_slip_" . $user->id . "_" . time() . "." . $file->getClientOriginalExtension();
             
-            $file->move(public_path('uploads/slips'), $newFilename);
-            $dbPath = "uploads/slips/" . $newFilename;
+            $mimeType = $file->getClientMimeType();
+            $imageData = 'data:' . $mimeType . ';base64,' . base64_encode(file_get_contents($file->getRealPath()));
+            
+            $cloudName = env('CLOUDINARY_CLOUD_NAME');
+            $preset = env('CLOUDINARY_UPLOAD_PRESET');
 
-            $user->update([
-                'upgrade_slip' => $dbPath,
-                'pending_upgrade_plan' => $request->upgrade_package_target,
+            // Upload to Cloudinary [4]
+            $response = Http::asForm()->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/upload", [
+                'file' => $imageData,
+                'upload_preset' => $preset,
+                'folder' => 'lumus/slips',
             ]);
 
-            return redirect()->route('payment.index')->with('status', 'Upgrade slip submitted! We will process your upgrade shortly. Your current invitation remains LIVE.');
+            if ($response->successful()) {
+                $dbPath = $response->json('secure_url');
+
+                $user->update([
+                    'upgrade_slip' => $dbPath,
+                    'pending_upgrade_plan' => $request->upgrade_package_target,
+                ]);
+
+                return redirect()->route('payment.index')->with('status', 'Upgrade slip submitted! We will process your upgrade shortly. Your current invitation remains LIVE.');
+            }
         }
 
         return back()->withErrors(['error' => 'Upgrade slip upload failed. Please try again.']);
@@ -185,7 +211,6 @@ class PaymentController extends Controller
      */
     public function globalStatusCheck()
     {
-
         if (Auth::check()) {
             $user = Auth::user();
             return response()->json([

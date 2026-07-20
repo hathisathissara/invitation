@@ -172,7 +172,7 @@ class AdminController extends Controller
         }
 
         // 2. Delete payment slip
-        if (!empty($user->payment_slip)) {
+        if (!empty($user->payment_slip) && !str_starts_with($user->payment_slip, 'http')) {
             $path = public_path($user->payment_slip);
             if (File::exists($path)) File::delete($path);
         }
@@ -276,7 +276,7 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
 
         // Delete upgrade slip file
-        if (!empty($user->upgrade_slip)) {
+        if (!empty($user->upgrade_slip) && !str_starts_with($user->upgrade_slip, 'http')) {
             $path = public_path($user->upgrade_slip);
             if (File::exists($path)) File::delete($path);
         }
@@ -402,14 +402,14 @@ class AdminController extends Controller
         }
 
         // Delete files
-        if (!empty($user->payment_slip)) {
-            $path = public_path($user->payment_slip);
-            if (File::exists($path)) File::delete($path);
-        }
-        if (!empty($user->upgrade_slip)) {
+        if (!empty($user->payment_slip) && !str_starts_with($user->payment_slip, 'http')) {
+        $path = public_path($user->payment_slip);
+        if (File::exists($path)) File::delete($path);
+}   
+        if (!empty($user->upgrade_slip) && !str_starts_with($user->upgrade_slip, 'http')) {
             $path = public_path($user->upgrade_slip);
-            if (File::exists($path)) File::delete($path);
-        }
+        if (File::exists($path)) File::delete($path);
+}
 
         // Reset user
         $user->update([
