@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 
@@ -23,5 +24,8 @@ class AppServiceProvider extends ServiceProvider
        Schema::defaultStringLength(191);
         // Register our custom invitation language formatting helper
         require_once app_path('Helpers/invitation_helper.php');
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
     }
 }
