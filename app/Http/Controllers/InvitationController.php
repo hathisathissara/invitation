@@ -252,7 +252,10 @@ class InvitationController extends Controller
     /**
      * Handle AJAX Guest shared photo upload.
      */
-   public function uploadPhoto($slug, Request $request)
+   /**
+     * Handle AJAX Guest shared photo upload via Cloudinary API.
+     */
+    public function uploadPhoto($slug, Request $request)
     {
         $wedding = Wedding::where('slug', $slug)->firstOrFail();
         $guestName = Session::get('guest_name', 'Anonymous Guest');
@@ -267,23 +270,28 @@ class InvitationController extends Controller
         if ($request->hasFile('guest_image')) {
             $file = $request->file('guest_image');
             
-            $imageData = 'data:image/' . $file->extension() . ';base64,' . base64_encode(file_get_contents($file->getRealPath()));
+            // 💡 වඩාත්ම සුරක්ෂිත සහ නිවැරදි Mime Type encoder එක
+            $mimeType = $file->getClientMimeType();
+            $imageData = 'data:' . $mimeType . ';base64,' . base64_encode(file_get_contents($file->getRealPath()));
             
             $cloudName = env('CLOUDINARY_CLOUD_NAME');
             $preset = env('CLOUDINARY_UPLOAD_PRESET');
 
-            $response = Http::asForm()->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/upload", [
+            // Cloudinary slips folder එකට upload කිරීම [4]
+            $response = \Illuminate\Support\Facades\Http::asForm()->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/upload", [
                 'file' => $imageData,
                 'upload_preset' => $preset,
                 'folder' => 'lumus/guest_gallery',
             ]);
 
             if ($response->successful()) {
-                $dbPath = $response->json('secure_url');
+                $dbPath = $response->json('secure_url'); // Cloud URL
+                $publicId = $response->json('public_id'); // Cloud Public ID
 
                 $wedding->guestGalleries()->create([
                     'guest_name' => $guestName,
                     'image_path' => $dbPath,
+                    'public_id' => $publicId, // 👈 DB එකට ID එකත් එකවර සේව් කරයි
                 ]);
 
                 return response()->json(['success' => true, 'message' => 'Moment shared successfully!']);
@@ -292,7 +300,6 @@ class InvitationController extends Controller
 
         return response()->json(['success' => false, 'message' => 'Failed to save image to cloud.']);
     }
-
     /* ================= DYNAMIC CONTROLLER COLOR HELPERS ================= */
 
     private function getThemeColors($themeName)
