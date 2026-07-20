@@ -65,21 +65,14 @@
                         </div>
                     </div>
 
+                    <!-- reCAPTCHA (only shows if .env has the keys) -->
                     @if (env('RECAPTCHA_SITE_KEY') && env('RECAPTCHA_SITE_KEY') !== 'YOUR_SITE_KEY_HERE')
-                    {{-- reCAPTCHA v2 Invisible: token is generated fresh at submit time --}}
-                    {{-- This prevents timeout-or-duplicate errors on Vercel serverless cold starts --}}
-                    <button
-                        type="submit"
-                        id="login-submit-btn"
-                        class="btn-login"
-                        data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"
-                        data-callback="onRecaptchaSuccess"
-                        data-action="submit">
-                        Sign In to Dashboard
-                    </button>
-                    @else
-                    <button type="submit" class="btn-login">Sign In to Dashboard</button>
+                    <div class="form-group" style="margin-top: 20px; display: flex; justify-content: center;">
+                        <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}" data-theme="dark"></div>
+                    </div>
                     @endif
+
+                    <button type="submit" class="btn-login">Sign In to Dashboard</button>
                 </form>
 
                 <div class="divider-or">or</div>
@@ -95,16 +88,5 @@
             </div>
         </div>
     </div>
-
-    @if (env('RECAPTCHA_SITE_KEY') && env('RECAPTCHA_SITE_KEY') !== 'YOUR_SITE_KEY_HERE')
-    <x-slot name="scripts">
-        <script>
-            // Called by reCAPTCHA Invisible after token is generated — then submits the form
-            function onRecaptchaSuccess(token) {
-                document.getElementById('login-submit-btn').closest('form').submit();
-            }
-        </script>
-    </x-slot>
-    @endif
 
 </x-guest-layout>
