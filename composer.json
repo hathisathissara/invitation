@@ -73,7 +73,9 @@
             "dont-discover": [
                 "laravel/pail",
                 "laravel/pao",
-                "laravel/breeze"
+                "laravel/breeze",
+                "nunomaduro/collision",
+                "nunomaduro/termwind"
             ]
         }
     },
