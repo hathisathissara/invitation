@@ -27,7 +27,7 @@
             <i class="fas fa-lock text-warning" style="font-size: 3rem; margin-bottom: 20px;"></i>
             <h4 class="fw-bold mb-2">Guest Gallery Support is Locked</h4>
             <p class="mb-4">අමුත්තන්ට සජීවීව පින්තූර අප්ලෝඩ් කිරීමට සහ ඒවා කළමනාකරණය කිරීමට ඇති මෙම සුවිශේෂී පහසුකම ක්‍රියාත්මක වන්නේ <strong>Premium Plan</strong> එකෙහි හෝ <strong>Guest Gallery Add-on</strong> එක මිලදී ගත් අයට පමණි.</p>
-            <a href="#" class="topbar-btn-gold">
+            <a href="{{ route('payment.index') }}" class="topbar-btn-gold">
                 <i class="fas fa-arrow-circle-up"></i> Upgrade Plan / Activate Add-on
             </a>
         </div>
