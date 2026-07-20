@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $wedding->bride_name }} &amp; {{ $wedding->groom_name }} — Wedding Invitation</title>
     <meta name="description" content="You're invited! Open your personal wedding invitation.">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- DYNAMIC OPEN GRAPH METADATA (WhatsApp Rich Previews) -->
     <meta property="og:title" content="{{ $wedding->bride_name }} &amp; {{ $wedding->groom_name }} — Wedding Invitation" />
@@ -290,6 +291,18 @@ function openInvitationFlow() {
     document.body.classList.add('opening');
 
     @if ($justVerified)
+    // This is the ONLY place "opened" gets reported to the server — a real
+    // human tap on the wax seal. Link-preview bots (WhatsApp, Facebook,
+    // Telegram, etc.) fetch the page HTML but never run this JS, so they
+    // can never trigger it.
+    fetch("{{ route('invitation.markOpened', $wedding->slug) }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    }).catch(() => {});
+
     if (openBtn) openBtn.disabled = true;
     setTimeout(() => {
         document.body.classList.add('page-fade-out');

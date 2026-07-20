@@ -43,28 +43,14 @@ class InvitationController extends Controller
         $verifiedViaForm = false;
 
         // Auto-login via Personalized Token Link [t]
+        // NOTE: This runs on every GET to the page — including WhatsApp/Facebook/
+        // Telegram/Google link-preview bots fetching the URL to build the share
+        // card. So we ONLY set up the guest session here. 'is_opened' is marked
+        // separately, via markOpened(), fired by JS only when the guest actually
+        // taps the wax seal to open the envelope. See invite.blade.php.
         if ($request->has('t')) {
             $guest = Guest::where('wedding_id', $wedding->id)->where('invite_token', $request->t)->first();
             if ($guest) {
-                
-                // 🤖 💡 BOT DETECTION ALGORITHM (WhatsApp Preview block)
-                $userAgent = $request->header('User-Agent', '');
-                $isBot = false;
-                
-                // ප්‍රසිද්ධ සර්වර් බොට්ස්ලාගේ නම් ලැයිස්තුව
-                $botKeywords = ['WhatsApp', 'facebookexternalhit', 'TelegramBot', 'Twitterbot', 'LinkedInBot', 'Googlebot', 'Bingbot'];
-                foreach ($botKeywords as $keyword) {
-                    if (stripos($userAgent, $keyword) !== false) {
-                        $isBot = true;
-                        break;
-                    }
-                }
-
-                // රොබෝ කෙනෙක් නෙමෙයි නම් විතරක් Opened කියා සටහන් කරයි!
-                if (!$isBot && !$guest->is_opened) {
-                    $guest->update(['is_opened' => true, 'opened_at' => now()]);
-                }
-
                 Session::put('guest_id', $guest->id);
                 Session::put('guest_name', $guest->name);
                 Session::put('invite_wedding_id', $wedding->id);
@@ -79,22 +65,6 @@ class InvitationController extends Controller
             $guests = Guest::where('wedding_id', $wedding->id)->get();
             foreach ($guests as $g) {
                 if ($this->normalizeWhatsappNumber($g->whatsapp_number) === $normalizedWa) {
-                    
-                    // Bot check for legacy links
-                    $userAgent = $request->header('User-Agent', '');
-                    $isBot = false;
-                    $botKeywords = ['WhatsApp', 'facebookexternalhit', 'TelegramBot', 'Twitterbot', 'LinkedInBot', 'Googlebot', 'Bingbot'];
-                    foreach ($botKeywords as $keyword) {
-                        if (stripos($userAgent, $keyword) !== false) {
-                            $isBot = true;
-                            break;
-                        }
-                    }
-
-                    if (!$isBot && !$g->is_opened) {
-                        $g->update(['is_opened' => true, 'opened_at' => now()]);
-                    }
-
                     Session::put('guest_id', $g->id);
                     Session::put('guest_name', $g->name);
                     Session::put('invite_wedding_id', $wedding->id);
@@ -113,6 +83,36 @@ class InvitationController extends Controller
         $themeColors = $this->getThemeColors($wedding->template_name ?? 'premium_gold');
 
         return view('invitation.invite', compact('wedding', 'themeColors', 'isOwner', 'justVerified', 'verifiedViaForm'));
+    }
+
+    /**
+     * Mark the current session guest's invitation as "opened".
+     *
+     * IMPORTANT: This is only ever called via an AJAX request fired by the
+     * front-end when the guest physically taps/clicks the wax seal to open
+     * the envelope (see waxSeal click handler in invite.blade.php).
+     *
+     * It is deliberately NOT called from the invite() page-load route,
+     * because that route is also hit by WhatsApp/Facebook/Telegram/Google
+     * link-preview bots when generating the share card — and those bots
+     * never execute JavaScript, so this endpoint is never reached by them.
+     * That's what keeps the dashboard's "Opened" status accurate.
+     */
+    public function markOpened($slug, Request $request)
+    {
+        $wedding = Wedding::where('slug', $slug)->firstOrFail();
+
+        $guestId = Session::get('guest_id', 0);
+        if (Session::get('invite_wedding_id') !== $wedding->id || $guestId <= 0) {
+            return response()->json(['success' => false], 200);
+        }
+
+        $guest = Guest::where('id', $guestId)->where('wedding_id', $wedding->id)->first();
+        if ($guest && !$guest->is_opened) {
+            $guest->update(['is_opened' => true, 'opened_at' => now()]);
+        }
+
+        return response()->json(['success' => true]);
     }
 
     /**

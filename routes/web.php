@@ -156,6 +156,7 @@ Route::post('/invitation/{slug}', [InvitationController::class, 'verifyPhone'])-
 Route::get('/invitation/{slug}/view', [InvitationController::class, 'viewInvitation'])->name('invitation.view');
 Route::post('/invitation/{slug}/rsvp', [InvitationController::class, 'submitRsvp'])->name('invitation.rsvp');
 Route::post('/invitation/{slug}/upload', [InvitationController::class, 'uploadPhoto'])->name('invitation.upload');
+Route::post('/i/{slug}/mark-opened', [InvitationController::class, 'markOpened'])->name('invitation.markOpened');
 
 // Calendar ICS Download Route (Public)
 Route::get('/calendar/download/{id}', [CalendarController::class, 'download'])->name('calendar.download');
