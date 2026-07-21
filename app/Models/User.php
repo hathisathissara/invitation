@@ -16,7 +16,9 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
     protected $guarded = [];
+
     protected $fillable = [
         'name',
         'email',
@@ -32,7 +34,7 @@ class User extends Authenticatable
         'refund_requested_at',
         'refund_bank_details',
         'refund_reason',
-        'deletion_notice_sent_at'
+        'deletion_notice_sent_at',
     ];
 
     protected $hidden = [
@@ -51,7 +53,6 @@ class User extends Authenticatable
     {
         return $this->hasOne(Wedding::class);
     }
-
 
     /**
      * Get the attributes that should be cast.

@@ -6,9 +6,10 @@ use App\Models\User;
 use App\Models\Wedding;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 
 class SettingsController extends Controller
@@ -41,15 +42,15 @@ class SettingsController extends Controller
 
         $bride = trim($request->bride_name);
         $groom = trim($request->groom_name);
-        
+
         $slugChanged = false;
 
         if ($wedding->bride_name !== $bride || $wedding->groom_name !== $groom) {
-            $slugBase = \Illuminate\Support\Str::slug($bride . '-' . $groom);
+            $slugBase = Str::slug($bride.'-'.$groom);
             $slug = $slugBase;
-            
+
             while (Wedding::where('slug', $slug)->where('id', '!=', $wedding->id)->exists()) {
-                $slug = $slugBase . '-' . rand(100, 999);
+                $slug = $slugBase.'-'.rand(100, 999);
             }
             $wedding->slug = $slug;
             $slugChanged = true;
@@ -60,15 +61,15 @@ class SettingsController extends Controller
             'groom_name' => $groom,
             'wedding_date' => $request->wedding_date,
             'venue' => trim($request->venue),
-            'slug' => $wedding->slug
+            'slug' => $wedding->slug,
         ]);
 
         $user->update([
-            'name' => $bride . ' & ' . $groom
+            'name' => $bride.' & '.$groom,
         ]);
 
-        $statusMsg = $slugChanged 
-            ? 'Wedding details updated! Your invitation link has changed — please re-share the new link with guests.' 
+        $statusMsg = $slugChanged
+            ? 'Wedding details updated! Your invitation link has changed — please re-share the new link with guests.'
             : 'Wedding details updated!';
 
         return redirect()->route('settings.index')
@@ -88,7 +89,7 @@ class SettingsController extends Controller
 
         $user = Auth::user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'Current password is incorrect.'])
                 ->with('open_section', 'password');
         }
@@ -114,7 +115,7 @@ class SettingsController extends Controller
         $user = Auth::user();
         $wedding = $user->wedding;
 
-        if (!Hash::check($request->delete_password, $user->password)) {
+        if (! Hash::check($request->delete_password, $user->password)) {
             return back()->withErrors(['delete_password' => 'Incorrect password. Account not deleted.'])
                 ->with('open_section', 'danger');
         }
@@ -132,12 +133,12 @@ class SettingsController extends Controller
         }
 
         // 3. Payment Slip එක Cloudinary එකෙන් මකා දැමීම [2]
-        if (!empty($user->payment_slip)) {
+        if (! empty($user->payment_slip)) {
             $this->deleteCloudinaryFile($user->payment_slip, 'lumus/slips');
         }
 
         // 4. Upgrade Slip එක Cloudinary එකෙන් මකා දැමීම (තිබේ නම්)
-        if (!empty($user->upgrade_slip)) {
+        if (! empty($user->upgrade_slip)) {
             $this->deleteCloudinaryFile($user->upgrade_slip, 'lumus/slips');
         }
 
@@ -157,13 +158,15 @@ class SettingsController extends Controller
        ===================================================================== */
     private function deleteCloudinaryFile($url, $folder)
     {
-        if (empty($url) || !str_starts_with($url, 'http')) return;
-        
+        if (empty($url) || ! str_starts_with($url, 'http')) {
+            return;
+        }
+
         // Extract public ID from the URL [2]
         $urlParts = explode('/', $url);
         $fileNameWithExt = end($urlParts);
         $fileName = explode('.', $fileNameWithExt)[0];
-        $publicId = $folder . '/' . $fileName;
+        $publicId = $folder.'/'.$fileName;
 
         $cloudName = env('CLOUDINARY_CLOUD_NAME');
         $apiKey = env('CLOUDINARY_API_KEY');

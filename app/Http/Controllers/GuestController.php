@@ -5,12 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Guest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-
 
 class GuestController extends Controller
 {
-     public function index()
+    public function index()
     {
         $user = Auth::user();
         $wedding = $user->wedding;
@@ -31,7 +29,7 @@ class GuestController extends Controller
         foreach ($guests as $guest) {
             if (empty($guest->invite_token)) {
                 $guest->update([
-                    'invite_token' => $this->generateInviteToken()
+                    'invite_token' => $this->generateInviteToken(),
                 ]);
             }
         }
@@ -40,7 +38,7 @@ class GuestController extends Controller
         $totalSeats = $wedding->guests()->sum('seats_reserved');
 
         // Dynamic Invitation Link generation
-        $inviteUrl = url('/invitation/' . $wedding->slug);
+        $inviteUrl = url('/invitation/'.$wedding->slug);
 
         return view('guests.index', compact('guests', 'totalSeats', 'guestLimit', 'package', 'inviteUrl'));
     }
@@ -64,21 +62,24 @@ class GuestController extends Controller
         // Plan checks
         $package = $user->package ?? 'basic';
         $guestLimit = 150;
-        if ($package === 'standard') $guestLimit = 300;
-        elseif ($package === 'premium') $guestLimit = 999999;
+        if ($package === 'standard') {
+            $guestLimit = 300;
+        } elseif ($package === 'premium') {
+            $guestLimit = 999999;
+        }
 
         $currentSeats = $wedding->guests()->sum('seats_reserved') ?? 0;
         $requestedSeats = intval($request->seats_reserved);
 
         if (($currentSeats + $requestedSeats) > $guestLimit) {
-            return back()->withErrors(['limit' => "Your " . ucfirst($package) . " plan allows up to {$guestLimit} seats. Please upgrade."]);
+            return back()->withErrors(['limit' => 'Your '.ucfirst($package)." plan allows up to {$guestLimit} seats. Please upgrade."]);
         }
 
         // Whatsapp Number Normalization
         $whatsappNormalized = $this->normalizeWhatsappNumber($request->whatsapp_number);
 
         // Check if phone already exists
-        if (!empty($whatsappNormalized)) {
+        if (! empty($whatsappNormalized)) {
             $exists = $wedding->guests()->where('whatsapp_number', $whatsappNormalized)->exists();
             if ($exists) {
                 return back()->withErrors(['whatsapp' => 'This WhatsApp number is already in the guest list.']);
@@ -125,6 +126,7 @@ class GuestController extends Controller
                 'is_sent' => true,
                 'sent_at' => now(),
             ]);
+
             return response()->json(['success' => true]);
         }
 
@@ -159,12 +161,14 @@ class GuestController extends Controller
     {
         $value = trim((string) $value);
         $digits = preg_replace('/\D+/', '', $value);
-        if ($digits === '') return '';
+        if ($digits === '') {
+            return '';
+        }
 
         if (strlen($digits) > 10 && substr($digits, 0, 2) === '94') {
-            $digits = '0' . substr($digits, 2);
+            $digits = '0'.substr($digits, 2);
         } elseif (strlen($digits) === 9) {
-            $digits = '0' . $digits;
+            $digits = '0'.$digits;
         }
 
         return $digits;

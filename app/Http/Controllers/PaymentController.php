@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -18,9 +17,15 @@ class PaymentController extends Controller
 
         // Calculate current plan value for upgrade balance calculations
         $currentVal = 2500;
-        if ($user->package === 'standard') $currentVal = 5000;
-        if ($user->package === 'premium') $currentVal = 10000;
-        if ($user->has_guest_gallery == 1 && $user->package !== 'premium') $currentVal += 2000;
+        if ($user->package === 'standard') {
+            $currentVal = 5000;
+        }
+        if ($user->package === 'premium') {
+            $currentVal = 10000;
+        }
+        if ($user->has_guest_gallery == 1 && $user->package !== 'premium') {
+            $currentVal += 2000;
+        }
 
         // Calculate the fingerprint for live polling
         $initialStatusFingerprint = md5(implode('|', [
@@ -28,7 +33,7 @@ class PaymentController extends Controller
             $user->refund_status,
             $user->package,
             $user->has_guest_gallery,
-            !empty($user->pending_upgrade_plan) ? '1' : '0',
+            ! empty($user->pending_upgrade_plan) ? '1' : '0',
         ]));
 
         return view('payment.index', compact('user', 'currentVal', 'initialStatusFingerprint'));
@@ -54,11 +59,11 @@ class PaymentController extends Controller
 
         if ($request->hasFile('bank_slip')) {
             $file = $request->file('bank_slip');
-            
+
             // Dynamic base64 encode based on file mime-type (Supports Image and PDF!) [4]
             $mimeType = $file->getClientMimeType();
-            $imageData = 'data:' . $mimeType . ';base64,' . base64_encode(file_get_contents($file->getRealPath()));
-            
+            $imageData = 'data:'.$mimeType.';base64,'.base64_encode(file_get_contents($file->getRealPath()));
+
             $cloudName = env('CLOUDINARY_CLOUD_NAME');
             $preset = env('CLOUDINARY_UPLOAD_PRESET');
 
@@ -78,7 +83,7 @@ class PaymentController extends Controller
                     'package' => $selectedPackage,
                     'has_guest_gallery' => $addGallery,
                     'refund_status' => 'none',
-                    'refund_requested_at' => null
+                    'refund_requested_at' => null,
                 ]);
 
                 return redirect()->route('payment.index')->with('status', 'Bank slip uploaded! We will review and activate your plan soon.');
@@ -102,10 +107,10 @@ class PaymentController extends Controller
 
         if ($request->hasFile('upgrade_slip_file')) {
             $file = $request->file('upgrade_slip_file');
-            
+
             $mimeType = $file->getClientMimeType();
-            $imageData = 'data:' . $mimeType . ';base64,' . base64_encode(file_get_contents($file->getRealPath()));
-            
+            $imageData = 'data:'.$mimeType.';base64,'.base64_encode(file_get_contents($file->getRealPath()));
+
             $cloudName = env('CLOUDINARY_CLOUD_NAME');
             $preset = env('CLOUDINARY_UPLOAD_PRESET');
 
@@ -141,11 +146,11 @@ class PaymentController extends Controller
         ]);
 
         $user = Auth::user();
-        
+
         $user->update([
             'refund_status' => 'pending',
             'refund_requested_at' => now(),
-            'refund_reason' => trim($request->reason)
+            'refund_reason' => trim($request->reason),
         ]);
 
         return response()->json(['success' => true]);
@@ -168,7 +173,7 @@ class PaymentController extends Controller
         $user = Auth::user();
         $user->update([
             'refund_status' => 'details_submitted',
-            'refund_bank_details' => $bankInfo
+            'refund_bank_details' => $bankInfo,
         ]);
 
         return response()->json(['success' => true]);
@@ -182,7 +187,7 @@ class PaymentController extends Controller
         Auth::user()->update([
             'refund_status' => 'none',
             'refund_reason' => null,
-            'refund_bank_details' => null
+            'refund_bank_details' => null,
         ]);
 
         return redirect()->route('payment.index');
@@ -194,13 +199,13 @@ class PaymentController extends Controller
     public function paymentLiveCheck()
     {
         $user = Auth::user();
-        
+
         $fingerprint = md5(implode('|', [
             $user->status,
             $user->refund_status,
             $user->package,
             $user->has_guest_gallery,
-            !empty($user->pending_upgrade_plan) ? '1' : '0',
+            ! empty($user->pending_upgrade_plan) ? '1' : '0',
         ]));
 
         return response()->json(['fingerprint' => $fingerprint]);
@@ -213,11 +218,12 @@ class PaymentController extends Controller
     {
         if (Auth::check()) {
             $user = Auth::user();
+
             return response()->json([
-                'status' => $user->role !== 'admin' ? $user->status : null
+                'status' => $user->role !== 'admin' ? $user->status : null,
             ]);
         }
-        
+
         return response()->json(['status' => null]);
     }
 }

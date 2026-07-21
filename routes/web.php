@@ -1,69 +1,69 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\EventController;
-use App\Http\Controllers\GuestController;
-use App\Http\Controllers\GuestGalleryController;
-use App\Http\Controllers\GalleryController;
-use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\InvitationController;
+// use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CustomizeController;
-use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\GuestController;
+use App\Http\Controllers\GuestGalleryController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 
 // Welcome Page (Home)
 Route::get('/', function () {
     return view('site.home');
 })->name('home');
- 
+
 Route::get('/features', function () {
     return view('site.features');
 })->name('features');
- 
+
 Route::get('/pricing', function () {
     return view('site.pricing');
 })->name('pricing');
- 
+
 Route::get('/template', function () {
     return view('site.template');
 })->name('template');
- 
+
 Route::get('/privacy', function () {
     return view('site.privacy');
 })->name('privacy');
- 
+
 Route::get('/terms', function () {
     return view('site.terms');
 })->name('terms');
- 
+
 Route::get('/refund', function () {
     return view('site.refund');
 })->name('refund');
 
-// Profile Routes (Breeze Default)
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+// Profile Routes (Breeze Default) - Removed as ProfileController does not exist and SettingsController is used instead
+// Route::middleware('auth')->group(function () {
+//     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+//     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+//     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+// });
 
 // =====================================================================
 // 🔒 Couple Dashboard Routes Group (Strictly Auth-Protected Couple Panel)
 // =====================================================================
-Route::middleware(['auth','role:couple'])->prefix('dashboard')->group(function () {
+Route::middleware(['auth', 'role:couple'])->prefix('dashboard')->group(function () {
     // Dashboard Home Route
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Checklist (Tasks) Routes
     Route::get('/checklist', [TaskController::class, 'index'])->name('tasks.index');
     Route::post('/checklist', [TaskController::class, 'store'])->name('tasks.store');
     Route::patch('/checklist/{task}/toggle', [TaskController::class, 'toggle'])->name('tasks.toggle');
     Route::delete('/checklist/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
-   
+
     // Wedding Events Routes
     Route::get('/events', [EventController::class, 'index'])->name('events.index');
     Route::post('/events', [EventController::class, 'store'])->name('events.store');
@@ -73,7 +73,7 @@ Route::middleware(['auth','role:couple'])->prefix('dashboard')->group(function (
     Route::get('/guests', [GuestController::class, 'index'])->name('guests.index');
     Route::post('/guests', [GuestController::class, 'store'])->name('guests.store');
     Route::delete('/guests/{guest}', [GuestController::class, 'destroy'])->name('guests.destroy');
-    
+
     // Guest AJAX Helper Routes
     Route::get('/guests/mark-sent/{id}', [GuestController::class, 'markSent']);
     Route::get('/guests/live-status', [GuestController::class, 'liveStatus'])->name('guests.live-status');
@@ -104,12 +104,12 @@ Route::middleware(['auth','role:couple'])->prefix('dashboard')->group(function (
     Route::post('/payment/upgrade', [PaymentController::class, 'upgradeSlip'])->name('payment.upgrade');
     Route::post('/payment/refund-request', [PaymentController::class, 'requestRefund'])->name('payment.refund-request');
     Route::post('/payment/bank-details', [PaymentController::class, 'submitBankDetails'])->name('payment.bank-details');
-    
+
     // Live polling endpoints for header and payment card
-   
+
     Route::get('/payment/live-check', [PaymentController::class, 'paymentLiveCheck'])->name('payment.live-check');
 
-     // Customize Invitation Routes
+    // Customize Invitation Routes
     Route::get('/customize', [CustomizeController::class, 'index'])->name('customize.index');
     Route::post('/customize/design', [CustomizeController::class, 'updateDesign'])->name('customize.design');
     Route::post('/customize/language', [CustomizeController::class, 'updateLanguage'])->name('customize.language');
@@ -125,16 +125,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/index', [AdminController::class, 'index']);
     Route::get('/toggle-status/{id}', [AdminController::class, 'toggleStatus'])->name('admin.toggle-status');
     Route::get('/notify-delete/{id}', [AdminController::class, 'notifyDelete'])->name('admin.notify-delete');
-    
+
     // 2. Delete Account Page (legacy admin_delete_account.php)
     Route::get('/users/{id}/delete', [AdminController::class, 'confirmDelete'])->name('admin.delete.confirm');
     Route::delete('/users/{id}', [AdminController::class, 'destroyUser'])->name('admin.delete.destroy');
-    
+
     // 3. Upgrades Panel (legacy admin_upgrades.php)
     Route::get('/upgrades', [AdminController::class, 'upgradesIndex'])->name('admin.upgrades');
     Route::post('/upgrades/{id}/approve', [AdminController::class, 'approveUpgrade'])->name('admin.upgrades.approve');
     Route::post('/upgrades/{id}/reject', [AdminController::class, 'rejectUpgrade'])->name('admin.upgrades.reject');
-    
+
     // 4. Refunds Panel (legacy admin_refunds.php)
     Route::get('/refunds', [AdminController::class, 'refundsIndex'])->name('admin.refunds');
     Route::post('/refunds/{id}/approve', [AdminController::class, 'approveRefund'])->name('admin.refunds.approve');
@@ -155,16 +155,13 @@ Route::post('/invitation/{slug}/rsvp', [InvitationController::class, 'submitRsvp
 Route::post('/invitation/{slug}/upload', [InvitationController::class, 'uploadPhoto'])->name('invitation.upload');
 Route::post('/i/{slug}/mark-opened', [InvitationController::class, 'markOpened'])->name('invitation.markOpened');
 
- // 💡 පොදු ලින්ක් එකක් ලෙස පිටතින් ලියන්න (නමුත් අපි Controller එකෙන් මේක ආරක්ෂා කරනවා)
+// 💡 පොදු ලින්ක් එකක් ලෙස පිටතින් ලියන්න (නමුත් අපි Controller එකෙන් මේක ආරක්ෂා කරනවා)
 Route::get('/dashboard/status-check', [PaymentController::class, 'globalStatusCheck'])->name('global.status-check');
 Route::get('/admin/live-stats', [AdminController::class, 'liveStats'])->name('admin.live-stats');
 Route::get('/admin/upgrades/live', [AdminController::class, 'liveUpgrades'])->name('admin.upgrades.live');
 Route::get('/admin/refunds/live', [AdminController::class, 'liveRefunds'])->name('admin.refunds.live');
 
-
 // Calendar ICS Download Route (Public)
 Route::get('/calendar/download/{id}', [CalendarController::class, 'download'])->name('calendar.download');
-
-
 
 require __DIR__.'/auth.php';

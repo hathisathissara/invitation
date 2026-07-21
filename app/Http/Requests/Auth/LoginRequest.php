@@ -6,6 +6,8 @@ use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -31,47 +33,48 @@ class LoginRequest extends FormRequest
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
             'g-recaptcha-response' => [
-            // If RECAPTCHA is set in .env, make it required
-            env('RECAPTCHA_SITE_KEY') && env('RECAPTCHA_SITE_KEY') !== 'YOUR_SITE_KEY_HERE' ? 'required' : 'nullable',
-            function ($attribute, $value, $fail) {
-                if (! (env('RECAPTCHA_SITE_KEY') && env('RECAPTCHA_SITE_KEY') !== 'YOUR_SITE_KEY_HERE')) {
-                    return; // reCAPTCHA not configured — skip
-                }
-
-                if (empty($value)) {
-                    $fail('Please complete the reCAPTCHA.');
-                    return;
-                }
-
-                try {
-                    $response = \Illuminate\Support\Facades\Http::timeout(5)
-                        ->withoutVerifying()
-                        ->asForm()
-                        ->post('https://www.google.com/recaptcha/api/siteverify', [
-                            'secret'   => env('RECAPTCHA_SECRET_KEY'),
-                            'response' => $value,
-                            'remoteip' => request()->ip(),
-                        ]);
-
-                    $json = $response->json();
-
-                    if (! ($json['success'] ?? false)) {
-                        // Log error codes for debugging (visible in Vercel logs)
-                        $errorCodes = implode(', ', $json['error-codes'] ?? ['unknown']);
-                        \Illuminate\Support\Facades\Log::warning('reCAPTCHA failed', [
-                            'error-codes' => $errorCodes,
-                            'host'        => $json['hostname'] ?? 'N/A',
-                        ]);
-                        $fail('Please complete the reCAPTCHA correctly. (Error: ' . $errorCodes . ')');
+                // If RECAPTCHA is set in .env, make it required
+                env('RECAPTCHA_SITE_KEY') && env('RECAPTCHA_SITE_KEY') !== 'YOUR_SITE_KEY_HERE' ? 'required' : 'nullable',
+                function ($attribute, $value, $fail) {
+                    if (! (env('RECAPTCHA_SITE_KEY') && env('RECAPTCHA_SITE_KEY') !== 'YOUR_SITE_KEY_HERE')) {
+                        return; // reCAPTCHA not configured — skip
                     }
-                } catch (\Exception $e) {
-                    // If Google is unreachable (network issue on serverless), let it pass
-                    // to avoid locking users out due to infrastructure problems
-                    \Illuminate\Support\Facades\Log::error('reCAPTCHA verification request failed: ' . $e->getMessage());
-                }
-            }
-        ]
-    ];
+
+                    if (empty($value)) {
+                        $fail('Please complete the reCAPTCHA.');
+
+                        return;
+                    }
+
+                    try {
+                        $response = Http::timeout(5)
+                            ->withoutVerifying()
+                            ->asForm()
+                            ->post('https://www.google.com/recaptcha/api/siteverify', [
+                                'secret' => env('RECAPTCHA_SECRET_KEY'),
+                                'response' => $value,
+                                'remoteip' => request()->ip(),
+                            ]);
+
+                        $json = $response->json();
+
+                        if (! ($json['success'] ?? false)) {
+                            // Log error codes for debugging (visible in Vercel logs)
+                            $errorCodes = implode(', ', $json['error-codes'] ?? ['unknown']);
+                            Log::warning('reCAPTCHA failed', [
+                                'error-codes' => $errorCodes,
+                                'host' => $json['hostname'] ?? 'N/A',
+                            ]);
+                            $fail('Please complete the reCAPTCHA correctly. (Error: '.$errorCodes.')');
+                        }
+                    } catch (\Exception $e) {
+                        // If Google is unreachable (network issue on serverless), let it pass
+                        // to avoid locking users out due to infrastructure problems
+                        Log::error('reCAPTCHA verification request failed: '.$e->getMessage());
+                    }
+                },
+            ],
+        ];
     }
 
     /**
@@ -84,7 +87,7 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey(),900);
+            RateLimiter::hit($this->throttleKey(), 900);
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),

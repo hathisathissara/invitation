@@ -1,4 +1,5 @@
 <?php
+
 return [
     'pending_save_the_date' => 'Save the Date',
     'pending_title' => 'Invitation is Coming Soon',

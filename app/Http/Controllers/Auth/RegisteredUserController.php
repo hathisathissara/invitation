@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Wedding;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -12,7 +13,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
 
 class RegisteredUserController extends Controller
 {
@@ -42,7 +42,7 @@ class RegisteredUserController extends Controller
                 $response = Http::withoutVerifying()->asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
                     'secret' => env('RECAPTCHA_SECRET_KEY'),
                     'response' => $value,
-                    'remoteip' => request()->ip()
+                    'remoteip' => request()->ip(),
                 ]);
 
                 if (! $response->json('success')) {
@@ -50,7 +50,7 @@ class RegisteredUserController extends Controller
                 }
             }],
         ], [
-            'g-recaptcha-response.required' => 'Please confirm you are not a robot.'
+            'g-recaptcha-response.required' => 'Please confirm you are not a robot.',
         ]);
 
         // 2. Database Transaction for User & Wedding
@@ -59,7 +59,7 @@ class RegisteredUserController extends Controller
 
             // Create User
             $user = User::create([
-                'name' => trim($request->bride_name) . ' & ' . trim($request->groom_name),
+                'name' => trim($request->bride_name).' & '.trim($request->groom_name),
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'role' => 'couple',
@@ -67,10 +67,10 @@ class RegisteredUserController extends Controller
             ]);
 
             // Generate Unique Slug
-            $slugBase = Str::slug($request->bride_name . '-' . $request->groom_name);
+            $slugBase = Str::slug($request->bride_name.'-'.$request->groom_name);
             $slug = $slugBase;
             while (Wedding::where('slug', $slug)->exists()) {
-                $slug = $slugBase . '-' . rand(100, 999);
+                $slug = $slugBase.'-'.rand(100, 999);
             }
 
             // Create Wedding linked to User
@@ -89,6 +89,7 @@ class RegisteredUserController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return back()->withInput()->withErrors(['error' => 'Registration failed. Please try again later.']);
         }
     }

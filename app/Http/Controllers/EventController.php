@@ -8,18 +8,18 @@ use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
-   /**
+    /**
      * Display a listing of wedding events.
      */
     public function index()
     {
         $wedding = Auth::user()->wedding;
-        
+
         // Wedding එකට අදාල events ටික දිනය අනුව පිළිවෙලට ගන්නවා
         $events = $wedding->events()->orderBy('event_date_time', 'asc')->get();
-        
+
         // Form එකට auto-fill වෙන්න default venue එක ගන්නවා
-        $defaultVenue = $wedding->venue; 
+        $defaultVenue = $wedding->venue;
 
         return view('events.index', compact('events', 'defaultVenue'));
     }

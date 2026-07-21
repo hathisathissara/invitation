@@ -15,13 +15,13 @@ class CheckRole
     public function handle(Request $request, Closure $next, string $role): Response
     {
         // 1. ලොග් වී නැත්නම් කෙලින්ම Login පේජ් එකට යවයි
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect('/login');
         }
 
         // 2. ලොග් වී සිටින පරිශීලකයාගේ Role එක අපිට අවශ්‍ය එකට වඩා වෙනස් නම්
         if (Auth::user()->role !== $role) {
-            
+
             // Admin කෙනෙක් වැරදීමකින් Couple පිටුවකට ආවොත් -> Admin Panel එකට හරවා යවයි
             if (Auth::user()->role === 'admin') {
                 return redirect()->route('admin.index')->withErrors(['error' => 'Admins cannot access couple dashboards.']);

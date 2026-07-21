@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Gallery;
-use App\Models\Wedding;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 
 class GalleryController extends Controller
 {
@@ -47,12 +46,12 @@ class GalleryController extends Controller
     {
         if ($request->hasFile('gallery_image')) {
             $file = $request->file('gallery_image');
-            $imageData = 'data:image/' . $file->extension() . ';base64,' . base64_encode(file_get_contents($file->getRealPath()));
-            
+            $imageData = 'data:image/'.$file->extension().';base64,'.base64_encode(file_get_contents($file->getRealPath()));
+
             $cloudName = env('CLOUDINARY_CLOUD_NAME');
             $preset = env('CLOUDINARY_UPLOAD_PRESET');
 
-            $response = \Illuminate\Support\Facades\Http::asForm()->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/upload", [
+            $response = Http::asForm()->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/upload", [
                 'file' => $imageData,
                 'upload_preset' => $preset,
                 'folder' => 'lumus/gallery',
@@ -61,15 +60,17 @@ class GalleryController extends Controller
             if ($response->successful()) {
                 $dbPath = $response->json('secure_url');
                 $publicId = $response->json('public_id'); // 👈 Cloudinary දෙන ID එක
-                
+
                 $wedding = Auth::user()->wedding;
                 $wedding->galleries()->create([
                     'image_path' => $dbPath,
                     'public_id' => $publicId, // 👈 DB එකට සේව් කරනවා
                 ]);
+
                 return response()->json(['success' => true]);
             }
         }
+
         return response()->json(['success' => false, 'message' => 'Upload failed.']);
     }
 
@@ -87,7 +88,7 @@ class GalleryController extends Controller
             // 👈 දැන් කෙලින්ම DB එකේ තියෙන ID එක පාවිච්චි කරනවා (URL කඩන්නේ නෑ)
             $signature = sha1("public_id={$image->public_id}&timestamp={$timestamp}{$apiSecret}");
 
-            \Illuminate\Support\Facades\Http::asForm()->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/destroy", [
+            Http::asForm()->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/destroy", [
                 'public_id' => $image->public_id,
                 'api_key' => $apiKey,
                 'timestamp' => $timestamp,

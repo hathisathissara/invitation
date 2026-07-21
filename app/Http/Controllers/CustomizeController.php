@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Wedding;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,15 +17,15 @@ class CustomizeController extends Controller
 
         // Templates list matching layout config
         $allTemplates = [
-            'premium_gold'     => ['label' => 'Premium Gold',     'sub' => 'Dark Theme',     'primary' => '#8a6520', 'accent' => '#c9a05a'],
-            'minimal_light'    => ['label' => 'Minimal Light',    'sub' => 'Clean Theme',    'primary' => '#8f6f42', 'accent' => '#b8935a'],
+            'premium_gold' => ['label' => 'Premium Gold',     'sub' => 'Dark Theme',     'primary' => '#8a6520', 'accent' => '#c9a05a'],
+            'minimal_light' => ['label' => 'Minimal Light',    'sub' => 'Clean Theme',    'primary' => '#8f6f42', 'accent' => '#b8935a'],
             'terracotta_bloom' => ['label' => 'Terracotta Bloom', 'sub' => 'Warm Theme',     'primary' => '#8f4526', 'accent' => '#c1633d'],
-            'plum_parchment'   => ['label' => 'Plum Parchment',   'sub' => 'Elegant Theme',  'primary' => '#4a2c3b', 'accent' => '#8a9a7e'],
-            'floral_garden'    => ['label' => 'Floral Garden',    'sub' => 'Floral Theme',   'primary' => '#a15873', 'accent' => '#8fac7a'],
-            'beach_tropical'   => ['label' => 'Beach Tropical',   'sub' => 'Tropical Theme', 'primary' => '#9c7e3f', 'accent' => '#c9a961'],
-            'rustic_boho'      => ['label' => 'Rustic Boho',      'sub' => 'Boho Theme',     'primary' => '#9c6b4a', 'accent' => '#c98f6b'],
-            'royal_classic'    => ['label' => 'Royal Classic',    'sub' => 'Royal Theme',    'primary' => '#1c2340', 'accent' => '#c6a15b'],
-            'indian_royal'     => ['label' => 'Indian Royal',     'sub' => 'Indian Theme',   'primary' => '#6e1626', 'accent' => '#d4af37'],
+            'plum_parchment' => ['label' => 'Plum Parchment',   'sub' => 'Elegant Theme',  'primary' => '#4a2c3b', 'accent' => '#8a9a7e'],
+            'floral_garden' => ['label' => 'Floral Garden',    'sub' => 'Floral Theme',   'primary' => '#a15873', 'accent' => '#8fac7a'],
+            'beach_tropical' => ['label' => 'Beach Tropical',   'sub' => 'Tropical Theme', 'primary' => '#9c7e3f', 'accent' => '#c9a961'],
+            'rustic_boho' => ['label' => 'Rustic Boho',      'sub' => 'Boho Theme',     'primary' => '#9c6b4a', 'accent' => '#c98f6b'],
+            'royal_classic' => ['label' => 'Royal Classic',    'sub' => 'Royal Theme',    'primary' => '#1c2340', 'accent' => '#c6a15b'],
+            'indian_royal' => ['label' => 'Indian Royal',     'sub' => 'Indian Theme',   'primary' => '#6e1626', 'accent' => '#d4af37'],
         ];
 
         $languages = [
@@ -89,8 +88,9 @@ class CustomizeController extends Controller
         $musicEnabled = $request->has('music_enabled') && $request->music_enabled == '1';
         $track = $request->music_track ?? '';
 
-        if (!$musicEnabled) {
+        if (! $musicEnabled) {
             $wedding->update(['music_track' => null]);
+
             return redirect()->route('customize.index')
                 ->with('status', 'Background music turned off.')
                 ->with('open_section', 'acc-music');
@@ -99,6 +99,7 @@ class CustomizeController extends Controller
         // Validate track exists in config
         if (array_key_exists($track, config('music'))) {
             $wedding->update(['music_track' => $track]);
+
             return redirect()->route('customize.index')
                 ->with('status', 'Background music updated successfully!')
                 ->with('open_section', 'acc-music');

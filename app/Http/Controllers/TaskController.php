@@ -39,7 +39,7 @@ class TaskController extends Controller
         ]);
 
         $wedding = Auth::user()->wedding;
-        
+
         $wedding->tasks()->create([
             'task_name' => trim($request->task_name),
         ]);
@@ -58,7 +58,7 @@ class TaskController extends Controller
         }
 
         $task->update([
-            'is_completed' => !$task->is_completed,
+            'is_completed' => ! $task->is_completed,
         ]);
 
         return redirect()->route('tasks.index');

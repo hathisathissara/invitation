@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role',['admin','couple'])->default('couple');
-            $table->enum('status',['pending','active'])->default('pending');
+            $table->enum('role', ['admin', 'couple'])->default('couple');
+            $table->enum('status', ['pending', 'active'])->default('pending');
             $table->string('payment_slip')->nullable();
             $table->dateTime('deletion_notice_sent_at')->nullable();
             $table->dateTime('refund_requested_at')->nullable();

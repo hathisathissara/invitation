@@ -2,11 +2,12 @@
 
 use Illuminate\Support\Facades\App;
 
-if (!function_exists('get_lang_strings')) {
+if (! function_exists('get_lang_strings')) {
     /**
      * Holds the master translation array for static invitation labels.
      */
-    function get_lang_strings() {
+    function get_lang_strings()
+    {
         return [
             // ---- Gate / envelope page (invite.php) ----
             'the_wedding_of' => [
@@ -249,11 +250,12 @@ if (!function_exists('get_lang_strings')) {
     }
 }
 
-if (!function_exists('t')) {
+if (! function_exists('t')) {
     /**
      * Translates static strings based on Laravel Active Locale.
      */
-    function t($key) {
+    function t($key)
+    {
         $lang = App::getLocale();
         $strings = get_lang_strings();
 
@@ -266,8 +268,9 @@ if (!function_exists('t')) {
     }
 }
 
-if (!function_exists('_invite_date_maps')) {
-    function _invite_date_maps() {
+if (! function_exists('_invite_date_maps')) {
+    function _invite_date_maps()
+    {
         return [
             'days' => [
                 'si' => ['රවිදා', 'සඳුදා', 'කුජදා', 'බුධදා', 'ගුරුදා', 'කිවිදා', 'ශනිදා'],
@@ -281,8 +284,9 @@ if (!function_exists('_invite_date_maps')) {
     }
 }
 
-if (!function_exists('_invite_time_maps')) {
-    function _invite_time_maps() {
+if (! function_exists('_invite_time_maps')) {
+    function _invite_time_maps()
+    {
         return [
             'si' => ['am' => 'පුර්වභාග', 'pm' => 'අපරභාග '],
             'ta' => ['am' => 'முற்பகல்', 'pm' => 'பிற்பகல்'],
@@ -290,17 +294,20 @@ if (!function_exists('_invite_time_maps')) {
     }
 }
 
-if (!function_exists('t_date')) {
+if (! function_exists('t_date')) {
     /**
      * Formats full date in Sinhala/Tamil/English invitation styles.
      */
-    function t_date($datetime) {
+    function t_date($datetime)
+    {
         $lang = App::getLocale();
         $ts = is_int($datetime) ? $datetime : strtotime($datetime);
-        if ($ts === false) return '';
+        if ($ts === false) {
+            return '';
+        }
 
-        if ($lang === 'en' || !in_array($lang, ['si', 'ta'], true)) {
-            return date("l, d F Y", $ts);
+        if ($lang === 'en' || ! in_array($lang, ['si', 'ta'], true)) {
+            return date('l, d F Y', $ts);
         }
 
         $maps = _invite_date_maps();
@@ -308,46 +315,54 @@ if (!function_exists('t_date')) {
         $month_name = $maps['months'][$lang][(int) date('n', $ts) - 1];
 
         if ($lang === 'si') {
-            return date('Y', $ts) . ' ' . $month_name . ' මස ' . date('d', $ts) . ' වන ' . $day_name;
+            return date('Y', $ts).' '.$month_name.' මස '.date('d', $ts).' වන '.$day_name;
         }
 
-        return $day_name . ', ' . date('d', $ts) . ' ' . $month_name . ' ' . date('Y', $ts);
+        return $day_name.', '.date('d', $ts).' '.$month_name.' '.date('Y', $ts);
     }
 }
 
-if (!function_exists('t_month')) {
+if (! function_exists('t_month')) {
     /**
      * Localized month name.
      */
-    function t_month($datetime) {
+    function t_month($datetime)
+    {
         $lang = App::getLocale();
         $ts = is_int($datetime) ? $datetime : strtotime($datetime);
-        if ($ts === false) return '';
+        if ($ts === false) {
+            return '';
+        }
 
-        if ($lang === 'en' || !in_array($lang, ['si', 'ta'], true)) {
+        if ($lang === 'en' || ! in_array($lang, ['si', 'ta'], true)) {
             return date('M', $ts);
         }
 
         $maps = _invite_date_maps();
+
         return $maps['months'][$lang][(int) date('n', $ts) - 1];
     }
 }
 
-if (!function_exists('t_time')) {
+if (! function_exists('t_time')) {
     /**
      * Localized AM/PM time representation.
      */
-    function t_time($datetime) {
+    function t_time($datetime)
+    {
         $lang = App::getLocale();
         $ts = is_int($datetime) ? $datetime : strtotime($datetime);
-        if ($ts === false) return '';
+        if ($ts === false) {
+            return '';
+        }
 
-        if ($lang === 'en' || !in_array($lang, ['si', 'ta'], true)) {
-            return date("h:i A", $ts);
+        if ($lang === 'en' || ! in_array($lang, ['si', 'ta'], true)) {
+            return date('h:i A', $ts);
         }
 
         $maps = _invite_time_maps();
         $ampm = (date('A', $ts) === 'AM') ? $maps[$lang]['am'] : $maps[$lang]['pm'];
-        return date('h:i', $ts) . ' ' . $ampm;
+
+        return date('h:i', $ts).' '.$ampm;
     }
 }

@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Wedding;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class CalendarController extends Controller
 {
@@ -31,17 +30,17 @@ class CalendarController extends Controller
             // Convert time to UTC for universal calendar compatibility
             $start = Carbon::parse($event->event_date_time)->setTimezone('UTC')->format('Ymd\THis\Z');
             $end = Carbon::parse($event->event_date_time)->addHours(2)->setTimezone('UTC')->format('Ymd\THis\Z'); // Assuming 2 hours duration
-            
-            $uid = md5($event->id . $wedding->id) . "@lumosstudio.com";
-            $summary = $event->event_name . " - " . $wedding->bride_name . " & " . $wedding->groom_name;
+
+            $uid = md5($event->id.$wedding->id).'@lumosstudio.com';
+            $summary = $event->event_name.' - '.$wedding->bride_name.' & '.$wedding->groom_name;
 
             $vCalendar .= "BEGIN:VEVENT\r\n";
-            $vCalendar .= "UID:" . $uid . "\r\n";
-            $vCalendar .= "DTSTAMP:" . gmdate('Ymd\THis\Z') . "\r\n";
-            $vCalendar .= "DTSTART:" . $start . "\r\n";
-            $vCalendar .= "DTEND:" . $end . "\r\n";
-            $vCalendar .= "SUMMARY:" . $this->escapeIcalString($summary) . "\r\n";
-            $vCalendar .= "LOCATION:" . $this->escapeIcalString($event->location_name) . "\r\n";
+            $vCalendar .= 'UID:'.$uid."\r\n";
+            $vCalendar .= 'DTSTAMP:'.gmdate('Ymd\THis\Z')."\r\n";
+            $vCalendar .= 'DTSTART:'.$start."\r\n";
+            $vCalendar .= 'DTEND:'.$end."\r\n";
+            $vCalendar .= 'SUMMARY:'.$this->escapeIcalString($summary)."\r\n";
+            $vCalendar .= 'LOCATION:'.$this->escapeIcalString($event->location_name)."\r\n";
             $vCalendar .= "END:VEVENT\r\n";
         }
 
@@ -49,12 +48,12 @@ class CalendarController extends Controller
         $vCalendar .= "END:VCALENDAR\r\n";
 
         // Create a clean filename
-        $filename = "Wedding_" . Str::slug($wedding->bride_name . '_' . $wedding->groom_name) . ".ics";
+        $filename = 'Wedding_'.Str::slug($wedding->bride_name.'_'.$wedding->groom_name).'.ics';
 
         // Return as a downloadable text/calendar file
         return response($vCalendar)
             ->header('Content-Type', 'text/calendar; charset=utf-8')
-            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+            ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
     }
 
     /**
@@ -66,6 +65,7 @@ class CalendarController extends Controller
         $string = str_replace(',', '\,', $string);
         $string = str_replace(';', '\;', $string);
         $string = str_replace("\n", '\n', $string);
+
         return $string;
     }
 }

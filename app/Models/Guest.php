@@ -22,7 +22,7 @@ class Guest extends Model
         'rsvp_status',
         'guest_note',
         'is_sent',
-        'sent_at'
+        'sent_at',
     ];
 
     // Guest කෙනෙක් අයිති වෙන්නේ එක Wedding එකකටයි
