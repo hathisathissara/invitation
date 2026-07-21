@@ -42,12 +42,7 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        'refund_requested_at' => 'datetime',
-        'deletion_notice_sent_at' => 'datetime',
-    ];
+
 
     public function wedding()
     {
@@ -64,6 +59,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'refund_requested_at' => 'datetime',
+            'deletion_notice_sent_at' => 'datetime',
         ];
     }
 }
