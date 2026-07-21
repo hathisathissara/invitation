@@ -4,57 +4,57 @@
 
 A SaaS digital wedding invitation platform built with Laravel. Couples can create, customize, and share beautiful digital wedding invitations with their guests, manage RSVPs, and track guest engagement.
 
-## Features
+## ✨ Features
 
-### For Couples
-- **Create Invitations** -- Personalized digital wedding invitations with names, date, venue, and a unique shareable link
-- **9 Theme Templates** -- Premium Gold, Minimal Light, Terracotta Bloom, Plum Parchment, Floral Garden, Beach Tropical, Rustic Boho, Royal Classic, Indian Royal
-- **3 Languages** -- English, Sinhala, Tamil with full translation support
-- **Background Music** -- 5 curated tracks to accompany the invitation
-- **Guest Management** -- Add guests with WhatsApp numbers, categories, seat assignments, and delivery tracking
-- **RSVP Tracking** -- Real-time accept/decline with guest notes and seat reservations
-- **Photo Gallery** -- Upload couple photos and a "Love Story" section
-- **Guest Shared Gallery** -- Guests can share their own photos
-- **Wedding Events** -- Manage events with Google Maps links and ICS calendar downloads
-- **Wedding Checklist** -- Track planning tasks with progress
-- **3D Animated Envelope Gate** -- WebGL-powered wax seal envelope animation using Three.js
+### 💍 For Couples
+- **Create Invitations** - Personalized digital wedding invitations with names, date, venue, and a unique shareable link.
+- **9 Theme Templates** - Premium Gold, Minimal Light, Terracotta Bloom, Plum Parchment, Floral Garden, Beach Tropical, Rustic Boho, Royal Classic, Indian Royal.
+- **3 Languages** - English, Sinhala, Tamil with full translation support.
+- **Background Music** - 5 curated tracks to accompany the invitation.
+- **Guest Management** - Add guests with WhatsApp numbers, categories, seat assignments, and delivery tracking.
+- **RSVP Tracking** - Real-time accept/decline with guest notes and seat reservations.
+- **Photo Gallery** - Upload couple photos and a "Love Story" section.
+- **Guest Shared Gallery** - Guests can share their own photos (Premium feature).
+- **Wedding Events** - Manage events with Google Maps links and ICS calendar downloads.
+- **Wedding Checklist** - Track planning tasks with progress.
+- **3D Animated Envelope Gate** - WebGL-powered wax seal envelope animation using Three.js.
 
-### For Guests
-- **Animated Invitation Experience** -- Stunning 3D envelope opening animation
-- **WhatsApp Verification** -- Simple identity verification via WhatsApp number
-- **RSVP Submission** -- Accept or decline with optional note
-- **Photo Sharing** -- Share photos from the wedding
-- **Calendar Integration** -- Add events to Google Calendar or download ICS files
+### 💌 For Guests
+- **Animated Invitation Experience** - Stunning 3D envelope opening animation.
+- **WhatsApp Verification** - Simple identity verification via WhatsApp number.
+- **RSVP Submission** - Accept or decline with optional note.
+- **Photo Sharing** - Share photos from the wedding.
+- **Calendar Integration** - Add events to Google Calendar or download ICS files.
 
-### Admin Panel
-- **Couple Management** -- Toggle activation, view payment status
-- **Payment Processing** -- Review bank slip uploads, approve/reject payments
-- **Upgrade Requests** -- Manage package upgrades
-- **Refund Management** -- Two-phase refund process with eligibility checks
+### ⚙️ Admin Panel
+- **Couple Management** - Toggle activation, view payment status.
+- **Payment Processing** - Review bank slip uploads, approve/reject payments.
+- **Upgrade Requests** - Manage package upgrades.
+- **Refund Management** - Two-phase refund process with eligibility checks.
 
-## Tech Stack
+## 🛠 Tech Stack
 
 | Component | Technology |
 |---|---|
-| **Backend** | Laravel 13, PHP 8.3 |
+| **Backend** | Laravel 11+, PHP 8.3 |
 | **Frontend** | Alpine.js, Tailwind CSS, Vite |
 | **Database** | MySQL (SQLite for local dev) |
 | **3D Graphics** | Three.js (WebGL) |
 | **Image Hosting** | Cloudinary |
 | **Auth** | Laravel Breeze with role-based access (admin/couple) |
-| **Email** | Gmail SMTP |
+| **Email** | Gmail SMTP / Postmark |
 | **Deployment** | Docker / Vercel (serverless) |
 
-## Requirements
+## 📦 Requirements
 
-- PHP 8.3+
+- PHP 8.3 or higher
 - Composer
 - Node.js & npm
 - MySQL or SQLite
 - Cloudinary account (for image hosting)
-- reCAPTCHA v2 keys (for registration)
+- reCAPTCHA v2 keys (for registration spam protection)
 
-## Installation
+## 🚀 Installation Guide
 
 1. **Clone the repository**
    ```bash
@@ -68,49 +68,89 @@ A SaaS digital wedding invitation platform built with Laravel. Couples can creat
    npm install
    ```
 
-3. **Environment setup**
+3. **Environment Setup**
+   Copy the example environment file:
    ```bash
    cp .env.example .env
+   ```
+   Generate the application key:
+   ```bash
    php artisan key:generate
    ```
 
-4. **Configure `.env`**
-   - Set your database credentials
-   - Add Cloudinary credentials (`CLOUDINARY_URL`)
-   - Configure mail settings
-   - Add reCAPTCHA keys
+4. **Configure `.env` Variables**
+   Open your `.env` file and configure the essential variables below:
 
-5. **Run migrations**
+   **Database Configuration:**
+   ```env
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=lumos_db
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```
+
+   **Cloudinary Configuration (Required for galleries):**
+   ```env
+   CLOUDINARY_CLOUD_NAME=your_cloud_name
+   CLOUDINARY_UPLOAD_PRESET=your_upload_preset
+   CLOUDINARY_API_KEY=your_api_key
+   CLOUDINARY_API_SECRET=your_api_secret
+   ```
+
+   **Google reCAPTCHA v2 (Required for registration):**
+   ```env
+   RECAPTCHA_SITE_KEY=your_site_key
+   RECAPTCHA_SECRET_KEY=your_secret_key
+   ```
+
+   **Mail Configuration:**
+   ```env
+   MAIL_MAILER=smtp
+   MAIL_HOST=smtp.gmail.com
+   MAIL_PORT=587
+   MAIL_USERNAME=your_email@gmail.com
+   MAIL_PASSWORD=your_app_password
+   MAIL_ENCRYPTION=tls
+   MAIL_FROM_ADDRESS="support@lumusstudio.com"
+   MAIL_FROM_NAME="${APP_NAME}"
+   ```
+
+5. **Run Database Migrations**
    ```bash
    php artisan migrate
    ```
 
-6. **Build frontend assets**
+6. **Build Frontend Assets**
    ```bash
    npm run build
    ```
+   *(For development with HMR, use `npm run dev`)*
 
-7. **Start the development server**
+7. **Start the Development Server**
    ```bash
    composer dev
    ```
-   This runs the artisan server, queue listener, Vite dev server, and log viewer concurrently.
+   *(Alternatively, run `php artisan serve` and `npm run dev` in separate terminals).*
 
-### Quick Setup
+### ⚡ Quick Setup Command
 
+If you want to automate steps 2 to 6, simply run:
 ```bash
 composer setup
 ```
-This single command runs install, key generation, migrations, npm install, and Vite build.
+This single command runs `composer install`, `.env` copy, key generation, migrations, `npm install`, and Vite build.
 
-## Docker
+## 🐳 Docker Support
 
+You can run the app in a container:
 ```bash
 docker build -t lumos-invitation .
 docker run -p 8080:80 lumos-invitation
 ```
 
-## Database Schema
+## 📊 Database Schema Summary
 
 | Table | Description |
 |---|---|
@@ -122,7 +162,7 @@ docker run -p 8080:80 lumos-invitation
 | `guest_galleries` | Guest-shared photos |
 | `tasks` | Wedding planning checklist |
 
-## Pricing Plans
+## 💰 Pricing Plans
 
 | Plan | Price (LKR) | Seats |
 |---|---|---|
@@ -130,10 +170,10 @@ docker run -p 8080:80 lumos-invitation
 | **Standard** | Rs. 5,000 | 300 |
 | **Premium** | Rs. 10,000 | Unlimited + Guest Gallery |
 
-## Contributing
+## 🤝 Contributing
 
 Thank you for considering contributing to the Lumos Invitation Studio! Please follow standard Laravel contribution guidelines.
 
-## License
+## 📜 License
 
 This project is licensed under the MIT License. The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
